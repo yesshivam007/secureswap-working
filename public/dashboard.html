@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <style>
+        body[data-status="loading"] #dashboard-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading Dashboard...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280; }
+        .pending-item, .active-item, .history-item { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Status badge styles */
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; text-transform: capitalize; display: inline-block; }
+        .status-pending_payment { background-color: #FEF3C7; color: #92400E; }
+        .status-payment_received, .status-processing_delivery { background-color: #DBEAFE; color: #1E40AF; }
+        .status-item_shipped, .status-service_rendered { background-color: #D1FAE5; color: #065F46; }
+        .status-pending_receipt_confirmation { background-color: #FEF9C3; color: #92400E; }
+        .status-completed { background-color: #DCFCE7; color: #166534; }
+        .status-rejected, .status-cancelled, .status-disputed { background-color: #FEE2E2; color: #991B1B; }
+        .status-pending_confirmation { background-color: #E0E7FF; color: #3730A3; }
+    </style>
+</head>
+<body class="bg-neutral-lightest" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div class="flex items-center space-x-4">
+                <span id="user-greeting" class="text-neutral hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300 text-sm hidden"> Logout </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="dashboard-content" class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Your Dashboard</h1>
+
+        <div id="pending-confirmations-section" class="mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg shadow hidden">
+             <h2 class="text-xl font-semibold text-yellow-800 mb-4">Action Required: Confirm Deals</h2>
+            <div id="pending-confirmations-list" class="space-y-3">
+                <p id="no-pending-deals" class="text-neutral">No deals currently waiting for your confirmation.</p>
+            </div>
+        </div>
+
+         <div class="mb-8 p-6 bg-white rounded-lg shadow">
+             <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Quick Actions</h2>
+            <div class="flex space-x-4">
+                 <a href="create-deal.html" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition duration-300"> Create New Deal </a>
+            </div>
+        </div>
+
+        <div id="active-deals-section" class="mb-8 p-6 bg-white rounded-lg shadow">
+             <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Your Active Deals (In Progress)</h2>
+            <div id="active-deals-list" class="space-y-4">
+                 <p id="no-active-deals" class="text-neutral">You have no active deals currently.</p>
+            </div>
+        </div>
+
+        <div class="p-6 bg-white rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Recent History</h2>
+             <p id="no-recent-history" class="text-neutral">No completed or rejected transactions yet.</p>
+             <div id="recent-history-list" class="space-y-3">
+                 </div>
+             <div class="mt-4">
+                <a href="history.html" class="text-primary hover:underline">View Full History</a>
+             </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
+             <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
+             <a href="terms.html" class="hover:text-white">Terms of Service</a>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added Timestamp
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for Dashboard");
+        } catch (error) { console.error("Firebase initialization failed:", error); document.body.innerHTML = '<p class="text-center text-red-600 p-10">Error loading application services.</p>'; }
+
+        // --- DOM Elements ---
+        let logoutButton, userGreeting, dashboardContent,
+            pendingConfirmationsSection, pendingConfirmationsList, noPendingDealsMessage,
+            activeDealsSection, activeDealsList, noActiveDealsMessage,
+            recentHistoryList, noRecentHistoryMessage; // Declare all variables
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Assign all elements carefully
+            logoutButton = document.getElementById('logout-button');
+            userGreeting = document.getElementById('user-greeting');
+            dashboardContent = document.getElementById('dashboard-content');
+            // Pending confirmations
+            pendingConfirmationsSection = document.getElementById('pending-confirmations-section');
+            pendingConfirmationsList = document.getElementById('pending-confirmations-list');
+            noPendingDealsMessage = document.getElementById('no-pending-deals');
+            // Active Deals
+            activeDealsSection = document.getElementById('active-deals-section');
+            activeDealsList = document.getElementById('active-deals-list');
+            noActiveDealsMessage = document.getElementById('no-active-deals');
+            // Recent History --- **FIXED: Added assignments** ---
+            recentHistoryList = document.getElementById('recent-history-list');
+            noRecentHistoryMessage = document.getElementById('no-recent-history');
+            // --- End Fix ---
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+        });
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                console.log("User is logged in:", user.uid);
+                if (logoutButton) logoutButton.classList.remove('hidden');
+
+                // Fetch all data concurrently
+                // Ensure all elements are assigned before calling fetch functions
+                if (document.readyState === 'loading') {
+                     // Wait for DOMContentLoaded if auth resolves very quickly
+                     await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+                }
+                await Promise.all([
+                    fetchAndDisplayUserData(user.uid),
+                    fetchPendingConfirmations(user.email),
+                    fetchActiveDeals(user.uid),
+                    fetchRecentHistory(user.uid) // Now safe to call
+                ]);
+
+                document.body.dataset.status = 'loaded';
+            } else {
+                currentUser = null;
+                console.log("User is signed out. Redirecting to login.");
+                window.location.href = 'login.html';
+            }
+        });
+
+        // --- Fetch User Data (Name) ---
+        async function fetchAndDisplayUserData(uid) {
+             if (!db || !userGreeting || !currentUser) return; // Added currentUser check
+             try {
+                const userDocRef = doc(db, "users", uid);
+                const userDocSnap = await getDoc(userDocRef);
+                userGreeting.textContent = userDocSnap.exists() ? `Hi, ${userDocSnap.data().name || currentUser.email}!` : `Hi, ${currentUser.email}!`;
+                userGreeting.classList.remove('hidden');
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                userGreeting.textContent = `Hi, ${currentUser.email}! (Error)`; // Show fallback on error
+                userGreeting.classList.remove('hidden');
+            }
+        }
+
+        // --- Fetch Deals Pending YOUR Confirmation ---
+        async function fetchPendingConfirmations(userEmail) {
+             if (!db || !pendingConfirmationsList || !pendingConfirmationsSection || !noPendingDealsMessage) {
+                 console.error("Missing elements for pending confirmations display."); return;
+             }
+            pendingConfirmationsList.innerHTML = ''; // Clear previous items
+            pendingConfirmationsList.appendChild(noPendingDealsMessage); // Add back default message
+            noPendingDealsMessage.style.display = 'block'; // Show initially
+            pendingConfirmationsSection.classList.add('hidden'); // Hide section initially
+
+            const dealsRef = collection(db, "deals");
+            const q = query(dealsRef, where("otherPartyEmail", "==", userEmail), where("status", "==", "pending_confirmation"));
+            try {
+                const querySnapshot = await getDocs(q);
+                let hasPendingDeals = false;
+                querySnapshot.forEach((docSnap) => {
+                    hasPendingDeals = true;
+                    const deal = docSnap.data(); const dealId = docSnap.id;
+                    const listItem = document.createElement('div');
+                    listItem.className = 'pending-item p-4 border border-yellow-300 bg-white rounded-md flex justify-between items-center gap-4';
+                    const infoDiv = document.createElement('div');
+                    infoDiv.innerHTML = `
+                        <p class="text-sm text-neutral-dark">From: <span class="font-medium">${deal.creatorEmail}</span></p>
+                        <p class="text-sm text-neutral line-clamp-1" title="${deal.description}">Desc: ${deal.description}</p>
+                        <p class="text-sm text-neutral">Amount: <span class="font-semibold">₹${deal.amount.toFixed(2)}</span></p>
+                    `; // Added line-clamp
+                    const actionButton = document.createElement('a');
+                    actionButton.href = `deal-confirmation.html?dealId=${dealId}`;
+                    actionButton.className = 'bg-yellow-500 text-white px-4 py-1 rounded text-sm hover:bg-yellow-600 transition duration-200 whitespace-nowrap flex-shrink-0';
+                    actionButton.textContent = 'View & Confirm';
+                    listItem.appendChild(infoDiv); listItem.appendChild(actionButton);
+                    pendingConfirmationsList.appendChild(listItem);
+                });
+
+                if (hasPendingDeals) {
+                    noPendingDealsMessage.style.display = 'none';
+                    pendingConfirmationsSection.classList.remove('hidden');
+                } else {
+                     noPendingDealsMessage.style.display = 'block';
+                     pendingConfirmationsSection.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Error fetching pending deals: ", error);
+                noPendingDealsMessage.textContent = "Error loading pending deals.";
+                noPendingDealsMessage.style.display = 'block';
+                pendingConfirmationsSection.classList.remove('hidden');
+            }
+        }
+
+        // --- Fetch Active Deals (In Progress, involving ME) ---
+        async function fetchActiveDeals(userUid) {
+            if (!db || !activeDealsList || !noActiveDealsMessage || !currentUser) {
+                console.error("Missing elements or user data for active deals display."); return;
+            }
+            activeDealsList.innerHTML = '';
+            activeDealsList.appendChild(noActiveDealsMessage);
+            noActiveDealsMessage.style.display = 'block';
+
+            const dealsRef = collection(db, "deals");
+            const activeStatuses = ['pending_payment', 'payment_received', 'item_shipped'];
+            const createdPendingQuery = query(dealsRef, where("creatorUid", "==", userUid), where("status", "==", "pending_confirmation"));
+            const buyerActiveQuery = query(dealsRef, where("buyerUid", "==", userUid), where("status", "in", activeStatuses));
+            const sellerActiveQuery = query(dealsRef, where("sellerUid", "==", userUid), where("status", "in", activeStatuses));
+
+            try {
+                console.log("Fetching active deals...");
+                const [createdSnapshot, buyerSnapshot, sellerSnapshot] = await Promise.all([ getDocs(createdPendingQuery), getDocs(buyerActiveQuery), getDocs(sellerActiveQuery) ]);
+                console.log(`Query results: CreatedPending=${createdSnapshot.size}, BuyerActive=${buyerSnapshot.size}, SellerActive=${sellerSnapshot.size}`);
+
+                let hasActiveDeals = false;
+                const dealsMap = new Map();
+
+                const processAndRenderDeal = (docSnap, forcedRole = null) => {
+                     if (!dealsMap.has(docSnap.id)) {
+                        const deal = docSnap.data(); const dealId = docSnap.id;
+                        let userRole = forcedRole;
+                        if (!userRole && deal.status === 'pending_confirmation') { userRole = deal.creatorRole; }
+                        else if (!userRole) { userRole = (deal.buyerUid === userUid) ? 'Buyer' : (deal.sellerUid === userUid) ? 'Seller' : 'Unknown'; }
+                        if (userRole === 'Unknown') { console.warn(`Could not determine role for deal ${dealId}`); return; }
+
+                        dealsMap.set(dealId, { id: dealId, data: deal, userRole: userRole }); hasActiveDeals = true;
+                        const otherPartyEmail = (deal.creatorUid === userUid && deal.status === 'pending_confirmation') ? deal.otherPartyEmail : (userRole === 'Buyer') ? deal.sellerEmail : deal.buyerEmail;
+                        const listItem = document.createElement('div');
+                        listItem.className = 'active-item p-4 border border-gray-200 bg-white rounded-md flex justify-between items-center gap-4';
+                        const infoDiv = document.createElement('div');
+                        let statusText = deal.status.replace(/_/g, ' '); let statusClass = `status-${deal.status}`;
+                        // More descriptive status based on role and state
+                        if (deal.status === 'pending_confirmation') { statusText = "Waiting for other party"; }
+                        else if (deal.status === 'pending_payment') { statusText = (userRole === 'Buyer') ? "Action: Make Payment" : "Waiting for Payment"; }
+                        else if (deal.status === 'payment_received') { statusText = (userRole === 'Seller') ? "Action: Confirm Delivery" : "Waiting for Delivery"; }
+                        else if (deal.status === 'item_shipped') { statusText = (userRole === 'Buyer') ? "Action: Confirm Receipt" : "Waiting for Receipt"; }
+
+                        infoDiv.innerHTML = `
+                            <p class="text-sm text-neutral-dark">With: <span class="font-medium">${otherPartyEmail || '[Pending]'}</span></p>
+                            <p class="text-sm text-neutral line-clamp-1" title="${deal.description}">Desc: ${deal.description}</p>
+                            <p class="text-sm text-neutral">Amount: <span class="font-semibold">₹${deal.amount.toFixed(2)}</span></p>
+                            <p class="text-sm text-neutral">Status: <span class="status-badge ${statusClass}">${statusText}</span></p>
+                            <p class="text-sm text-neutral">Your Role: <span class="font-medium">${userRole}</span></p>`;
+                        const actionButton = document.createElement('a');
+                        actionButton.href = `transaction-progress.html?dealId=${dealId}`;
+                        actionButton.className = 'bg-blue-500 text-white px-4 py-1 rounded text-sm hover:bg-blue-600 transition duration-200 whitespace-nowrap flex-shrink-0';
+                        actionButton.textContent = 'View / Action';
+                         // Customize button appearance
+                         if (deal.status === 'pending_payment' && userRole === 'Buyer') { actionButton.classList.replace('bg-blue-500','bg-green-500'); actionButton.classList.replace('hover:bg-blue-600','hover:bg-green-600'); actionButton.textContent = 'Make Payment'; }
+                         else if (deal.status === 'pending_confirmation') { actionButton.textContent = 'Waiting...'; actionButton.classList.replace('bg-blue-500','bg-gray-400'); actionButton.classList.add('cursor-not-allowed', 'pointer-events-none'); actionButton.removeAttribute('href'); }
+                         else if (deal.status === 'payment_received' && userRole === 'Seller') { actionButton.textContent = 'Confirm Delivery'; }
+                         else if (deal.status === 'item_shipped' && userRole === 'Buyer') { actionButton.textContent = 'Confirm Receipt'; }
+
+                        listItem.appendChild(infoDiv); listItem.appendChild(actionButton);
+                        activeDealsList.appendChild(listItem);
+                     }
+                };
+                createdSnapshot.forEach(doc => processAndRenderDeal(doc));
+                buyerSnapshot.forEach(doc => processAndRenderDeal(doc, 'Buyer'));
+                sellerSnapshot.forEach(doc => processAndRenderDeal(doc, 'Seller'));
+
+                if (hasActiveDeals) { noActiveDealsMessage.style.display = 'none'; }
+                else { noActiveDealsMessage.style.display = 'block'; }
+                console.log("Finished processing active deals.");
+
+            } catch (error) { console.error("Error fetching active deals: ", error); noActiveDealsMessage.textContent = "Error loading active deals."; noActiveDealsMessage.style.display = 'block'; }
+        }
+
+         // --- Fetch Recent History (Completed / Rejected / Cancelled) ---
+         async function fetchRecentHistory(userUid) {
+             // Check if elements exist before proceeding
+             if (!db || !recentHistoryList || !noRecentHistoryMessage || !currentUser) {
+                 console.error("Missing elements or user data for recent history display."); return;
+             }
+             recentHistoryList.innerHTML = '';
+             recentHistoryList.appendChild(noRecentHistoryMessage);
+             noRecentHistoryMessage.style.display = 'block';
+
+             const dealsRef = collection(db, "deals");
+             const historyStatuses = ['completed', 'rejected', 'cancelled'];
+             const buyerHistoryQuery = query(dealsRef, where("buyerUid", "==", userUid), where("status", "in", historyStatuses), orderBy("createdAt", "desc"), limit(5));
+             const sellerHistoryQuery = query(dealsRef, where("sellerUid", "==", userUid), where("status", "in", historyStatuses), orderBy("createdAt", "desc"), limit(5));
+
+             try {
+                 console.log("Fetching recent history...");
+                 const [buyerHistorySnapshot, sellerHistorySnapshot] = await Promise.all([ getDocs(buyerHistoryQuery), getDocs(sellerHistoryQuery) ]);
+                 console.log(`History results: Buyer=${buyerHistorySnapshot.size}, Seller=${sellerHistorySnapshot.size}`);
+
+                 let hasHistory = false;
+                 const historyMap = new Map();
+
+                 const processAndRenderHistory = (docSnap) => {
+                     if (!historyMap.has(docSnap.id)) {
+                         const deal = docSnap.data(); const dealId = docSnap.id;
+                         historyMap.set(dealId, { id: dealId, data: deal }); hasHistory = true;
+                         const userRole = (deal.buyerUid === userUid) ? 'Buyer' : 'Seller';
+                         const otherPartyEmail = (userRole === 'Buyer') ? deal.sellerEmail : deal.buyerEmail;
+                         // Ensure createdAt is a Timestamp before formatting
+                         const dealDate = deal.createdAt instanceof Timestamp ? deal.createdAt.toDate().toLocaleDateString() : (deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A');
+
+                         const listItem = document.createElement('div');
+                         listItem.className = 'history-item p-3 border-b border-gray-100 bg-white rounded-md'; // Use div instead of li if parent is div
+                         let statusColor = 'text-gray-500';
+                         if (deal.status === 'completed') statusColor = 'text-green-600';
+                         if (deal.status === 'rejected' || deal.status === 'cancelled') statusColor = 'text-red-600';
+                         listItem.innerHTML = `
+                            <div class="flex justify-between items-center gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-neutral-dark font-medium truncate" title="${deal.description}">${deal.description}</p>
+                                    <p class="text-xs text-neutral">With: ${otherPartyEmail || 'N/A'} | Role: ${userRole} | Date: ${dealDate}</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                     <p class="text-sm font-semibold ${statusColor} capitalize">${deal.status}</p>
+                                     <p class="text-xs text-neutral">Amount: ₹${deal.amount.toFixed(2)}</p>
+                                </div>
+                            </div>`;
+                         recentHistoryList.appendChild(listItem);
+                     }
+                 };
+                 buyerHistorySnapshot.forEach(doc => processAndRenderHistory(doc));
+                 sellerHistorySnapshot.forEach(doc => processAndRenderHistory(doc));
+
+                 // Sort combined results client-side (optional, as Firestore queries already sort)
+                 // If needed: Array.from(historyMap.values()).sort(...).forEach(render...)
+
+                 if (hasHistory) { noRecentHistoryMessage.style.display = 'none'; }
+                 else { noRecentHistoryMessage.style.display = 'block'; }
+                 console.log("Finished processing history.");
+
+             } catch (error) { console.error("Error fetching recent history: ", error); noRecentHistoryMessage.textContent = "Error loading history."; noRecentHistoryMessage.style.display = 'block'; }
+         }
+
+        // --- Logout Handler ---
+        async function handleLogout() {
+             if (!auth) return;
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
+        }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Deal - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+     <style>
+        body[data-status="loading"] #confirmation-content,
+        body[data-status="error"] #confirmation-content,
+        body[data-status="unauthorized"] #confirmation-content,
+        body[data-status="not-found"] #confirmation-content,
+        body[data-status="already-processed"] #confirmation-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading Deal...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
+        #error-message { display: none; }
+        body[data-status="error"] #error-message,
+        body[data-status="unauthorized"] #error-message,
+        body[data-status="not-found"] #error-message,
+        body[data-status="already-processed"] #error-message { display: block; }
+    </style>
+</head>
+<body class="bg-neutral-lightest" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div>
+                <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm hidden" id="dashboard-link"> &larr; Back to Dashboard</a>
+                 <span id="user-email" class="text-neutral text-sm hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden">
+                    Logout
+                </button>
+                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login to Confirm</a>
+            </div>
+        </nav>
+    </header>
+
+    <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"></div>
+
+    <main id="confirmation-content" class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Confirm Your Deal</h1>
+        <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-2xl mx-auto">
+            <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Deal Details</h2>
+            <div class="space-y-3 text-neutral-dark mb-6 border-b pb-6">
+                <p><strong>From:</strong> <span id="creator-email">[Loading...]</span></p>
+                <p><strong>Description:</strong> <span id="deal-description">[Loading...]</span></p>
+                <p><strong>Amount:</strong> <span class="font-semibold">₹<span id="deal-amount">[Loading...]</span> INR</span></p>
+                <p><strong>Your Role:</strong> <span id="your-role" class="font-semibold">[Loading...]</span></p>
+            </div>
+            <p class="text-sm text-neutral mb-6">
+                Please review the details above carefully. By clicking "Accept Deal", you agree to the terms described.
+                If you accept as the Buyer, you will be prompted to make the payment. If you accept as the Seller, you agree to deliver the item/service once the Buyer has paid.
+            </p>
+             <div class="flex flex-col sm:flex-row gap-4">
+                 <button id="accept-button" class="flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-secondary hover:bg-secondary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition duration-300 disabled:opacity-50">
+                    Accept Deal
+                 </button>
+                  <button id="reject-button" class="flex-1 justify-center py-2 px-4 border border-red-500 rounded-md shadow-sm text-lg font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-300 disabled:opacity-50">
+                    Reject Deal
+                 </button>
+             </div>
+             <div id="action-message" class="text-sm hidden mt-6 text-center p-3 rounded-md"></div>
+        </div>
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+        <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
+             <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
+             <a href="terms.html" class="hover:text-white">Terms of Service</a>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added serverTimestamp
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null, dealId = null, dealData = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for Deal Confirmation");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            setPageStatus('error', "Error loading application services.");
+        }
+
+        // --- DOM Elements ---
+        let userEmailSpan, logoutButton, dashboardLink, loginLink,
+            errorMessageDiv, confirmationContent, creatorEmailSpan, dealDescriptionSpan,
+            dealAmountSpan, yourRoleSpan, acceptButton, rejectButton, actionMessageDiv;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            userEmailSpan = document.getElementById('user-email');
+            logoutButton = document.getElementById('logout-button');
+            dashboardLink = document.getElementById('dashboard-link');
+            loginLink = document.getElementById('login-link');
+            errorMessageDiv = document.getElementById('error-message');
+            confirmationContent = document.getElementById('confirmation-content');
+            creatorEmailSpan = document.getElementById('creator-email');
+            dealDescriptionSpan = document.getElementById('deal-description');
+            dealAmountSpan = document.getElementById('deal-amount');
+            yourRoleSpan = document.getElementById('your-role');
+            acceptButton = document.getElementById('accept-button');
+            rejectButton = document.getElementById('reject-button');
+            actionMessageDiv = document.getElementById('action-message');
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            // Add button listeners only if buttons exist
+            if (acceptButton) acceptButton.addEventListener('click', handleAcceptDeal);
+            if (rejectButton) rejectButton.addEventListener('click', handleRejectDeal);
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            dealId = urlParams.get('dealId');
+
+            if (!dealId) {
+                 setPageStatus('error', "No Deal ID provided in the URL.");
+            }
+            // Auth check will proceed if dealId exists
+        });
+
+        // --- Helper: Set Page Status & Message ---
+        function setPageStatus(status, message = '') {
+            document.body.dataset.status = status;
+            if (errorMessageDiv && message) {
+                errorMessageDiv.textContent = message;
+            }
+            if (confirmationContent) {
+                 confirmationContent.style.display = (status === 'loaded') ? 'block' : 'none';
+            }
+        }
+
+         // --- Helper: Show Action Message ---
+         function showActionMessage(message, isError = false) {
+            if (actionMessageDiv) {
+                actionMessageDiv.textContent = message;
+                actionMessageDiv.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+                actionMessageDiv.classList.add(isError ? 'bg-red-50' : 'bg-green-50', isError ? 'text-red-700' : 'text-green-700');
+            }
+        }
+
+        // --- Helper: Disable Action Buttons ---
+        function setActionButtonsDisabled(disabled) {
+            if (acceptButton) acceptButton.disabled = disabled;
+            if (rejectButton) rejectButton.disabled = disabled;
+        }
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                console.log("User logged in:", currentUser.uid);
+                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
+                if(logoutButton) logoutButton.classList.remove('hidden');
+                if(dashboardLink) dashboardLink.classList.remove('hidden');
+                if(loginLink) loginLink.classList.add('hidden');
+                if (dealId) fetchAndDisplayDeal(); else setPageStatus('error', "Deal ID is missing.");
+            } else {
+                currentUser = null;
+                console.log("User is signed out.");
+                if(userEmailSpan) userEmailSpan.classList.add('hidden');
+                if(logoutButton) logoutButton.classList.add('hidden');
+                if(dashboardLink) dashboardLink.classList.add('hidden');
+                if(loginLink) loginLink.classList.remove('hidden');
+                if (dealId) setPageStatus('unauthorized', "Please log in to view and confirm this deal."); else setPageStatus('error', "Deal ID is missing.");
+            }
+        });
+
+        // --- Fetch and Display Deal Data ---
+        async function fetchAndDisplayDeal() {
+            if (!dealId || !db || !currentUser) {
+                 console.log("fetchAndDisplayDeal prerequisites not met", {dealId, db, currentUser});
+                 return;
+            }
+            setPageStatus('loading');
+            console.log(`Fetching deal: ${dealId}`); // DEBUG
+            try {
+                const dealDocRef = doc(db, "deals", dealId);
+                const dealDocSnap = await getDoc(dealDocRef);
+
+                if (dealDocSnap.exists()) {
+                    dealData = dealDocSnap.data();
+                    console.log("Deal data fetched:", dealData); // DEBUG
+
+                    if (dealData.otherPartyEmail.toLowerCase() !== currentUser.email.toLowerCase()) {
+                        console.warn("Authorization failed: Current user email doesn't match otherPartyEmail"); // DEBUG
+                        setPageStatus('unauthorized', "You are not authorized to view or confirm this deal.");
+                        return;
+                    }
+
+                    if (dealData.status !== 'pending_confirmation') {
+                        console.log(`Deal status is ${dealData.status}, not pending_confirmation.`); // DEBUG
+                        setPageStatus('already-processed', `This deal has already been ${dealData.status}. No further action needed.`);
+                        setActionButtonsDisabled(true);
+                        displayDealDetails(dealData); // Still display details
+                        return;
+                    }
+
+                    displayDealDetails(dealData);
+                    setPageStatus('loaded');
+                    console.log("Deal loaded and displayed."); // DEBUG
+
+                } else {
+                    console.log("No such deal found!");
+                    setPageStatus('not-found', "Deal not found. Please check the Deal ID or link.");
+                }
+            } catch (error) {
+                console.error("Error getting deal document:", error);
+                setPageStatus('error', "Error fetching deal details. Please try again later.");
+            }
+        }
+
+        // --- Helper to display deal data ---
+        function displayDealDetails(data) {
+             // Check if elements exist before setting textContent
+             if (creatorEmailSpan) creatorEmailSpan.textContent = data.creatorEmail || 'N/A';
+             if (dealDescriptionSpan) dealDescriptionSpan.textContent = data.description || 'N/A';
+             if (dealAmountSpan) dealAmountSpan.textContent = data.amount?.toFixed(2) || 'N/A'; // Optional chaining for amount
+             if (yourRoleSpan) {
+                 yourRoleSpan.textContent = (data.creatorRole === 'buyer') ? 'Seller' : 'Buyer';
+             }
+        }
+
+        // --- Accept Deal Handler ---
+        async function handleAcceptDeal() {
+            console.log("handleAcceptDeal called"); // DEBUG
+            // Add more detailed check logging
+            console.log("Prerequisites check:", { currentUser, db, dealId, dealData_status: dealData?.status }); // DEBUG
+            if (!currentUser || !db || !dealId || !dealData || dealData.status !== 'pending_confirmation') {
+                showActionMessage("Cannot accept deal. Invalid state or data.", true);
+                console.error("Accept prerequisite check failed."); // DEBUG
+                return;
+            }
+
+            setActionButtonsDisabled(true);
+            showActionMessage("", false);
+            console.log("Accepting deal..."); // DEBUG
+
+            const isCreatorBuyer = dealData.creatorRole === 'buyer';
+            const updateData = {
+                status: 'pending_payment',
+                buyerUid: isCreatorBuyer ? dealData.creatorUid : currentUser.uid,
+                sellerUid: isCreatorBuyer ? currentUser.uid : dealData.creatorUid,
+                buyerEmail: isCreatorBuyer ? dealData.creatorEmail : currentUser.email,
+                sellerEmail: isCreatorBuyer ? currentUser.email : dealData.creatorEmail,
+                confirmedAt: serverTimestamp()
+            };
+            console.log("Update data prepared:", updateData); // DEBUG
+
+            try {
+                const dealDocRef = doc(db, "deals", dealId);
+                console.log("Getting doc ref:", dealDocRef.path); // DEBUG
+                await updateDoc(dealDocRef, updateData);
+                console.log("Deal accepted and updated in Firestore:", dealId); // DEBUG
+                showActionMessage("Deal accepted successfully! The buyer will now be prompted to pay.", false);
+                // Update local status to prevent re-processing display issues
+                dealData.status = 'pending_payment';
+
+            } catch (error) {
+                 console.error("Error updating deal document:", error); // DEBUG: Log the actual Firestore error
+                 showActionMessage("Failed to accept deal. Please try again.", true);
+                 setActionButtonsDisabled(false);
+            }
+        }
+
+        // --- Reject Deal Handler ---
+        async function handleRejectDeal() {
+             console.log("handleRejectDeal called"); // DEBUG
+             console.log("Prerequisites check:", { currentUser, db, dealId, dealData_status: dealData?.status }); // DEBUG
+             if (!currentUser || !db || !dealId || !dealData || dealData.status !== 'pending_confirmation') {
+                 showActionMessage("Cannot reject deal. Invalid state or data.", true);
+                 console.error("Reject prerequisite check failed."); // DEBUG
+                 return;
+            }
+            setActionButtonsDisabled(true);
+            showActionMessage("", false);
+            console.log("Rejecting deal..."); // DEBUG
+
+            const updateData = {
+                status: 'rejected',
+                rejectedAt: serverTimestamp()
+            };
+            console.log("Update data prepared:", updateData); // DEBUG
+
+             try {
+                const dealDocRef = doc(db, "deals", dealId);
+                console.log("Getting doc ref:", dealDocRef.path); // DEBUG
+                await updateDoc(dealDocRef, updateData);
+                console.log("Deal rejected and updated in Firestore:", dealId); // DEBUG
+                showActionMessage("Deal rejected successfully.", false);
+                 // Update local status
+                 dealData.status = 'rejected';
+
+            } catch (error) {
+                 console.error("Error updating deal document:", error); // DEBUG
+                 showActionMessage("Failed to reject deal. Please try again.", true);
+                 setActionButtonsDisabled(false);
+            }
+        }
+
+         // --- Logout Handler ---
+        async function handleLogout() {
+            // ... (logout logic remains the same) ...
+             if (!auth) return;
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign out failed:", error);
+                alert("Failed to sign out. Please try again.");
+            }
+        }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

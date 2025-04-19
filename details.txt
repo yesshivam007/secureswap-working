@@ -1,0 +1,19 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyCMgO6MZPz37hpQpxtG7sFYF5sdNMuAIok",
+  authDomain: "swap-prod-6b04e.firebaseapp.com",
+  projectId: "swap-prod-6b04e",
+  storageBucket: "swap-prod-6b04e.firebasestorage.app",
+  messagingSenderId: "962923873083",
+  appId: "1:962923873083:web:7be415e18ea586520ded1e",
+  measurementId: "G-53N902FZ2X"
+};
+
+Razorpay - "rzp_test_FxEEkD4A0iEWiw"
+Secret - "Cmmt8PQ3HHUJZKIwJY38HyYF"
+
+firebase functions:config:set razorpay.key_id="rzp_test_4wLqwbdfzDaKE0"
+firebase functions:config:set razorpay.key_secret="DpPC6K2NwMn17gXMcrWpyCio"
+
+firebase deploy --only functions --set-env-vars RAZORPAY_KEY_ID="rzp_test_4wLqwbdfzDaKE0",RAZORPAY_KEY_SECRET="DpPC6K2NwMn17gXMcrWpyCio"
+
+admin uid - m8Dmto1hnOYshQ2ptpKaLW0bTdH2

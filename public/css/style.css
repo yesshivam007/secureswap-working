@@ -1,0 +1,37 @@
+/* File: public/css/style.css */
+@import "tailwindcss";
+
+@theme {
+  /* Custom Colors */
+  --color-primary-light: #60A5FA; /* blue-400 */
+  --color-primary: #3B82F6;        /* Makes bg-primary, text-primary etc. work */
+  --color-primary-dark: #2563EB; /* blue-600 */
+
+  --color-secondary-light: #34D399; /* emerald-400 */
+  --color-secondary: #10B981;       /* Makes bg-secondary, text-secondary etc. work */
+  --color-secondary-dark: #059669; /* emerald-600 */
+
+  --color-neutral-lightest: #F9FAFB; /* gray-50 */
+  --color-neutral-light: #F3F4F6;    /* gray-100 */
+  --color-neutral: #6B7280;          /* gray-500 */
+  --color-neutral-dark: #374151;     /* gray-700 */
+  --color-neutral-darkest: #111827;  /* gray-900 */
+
+  /* Font Family (Tailwind v4 uses system fonts by default. Add custom fonts here if needed later) */
+  /* Example: --font-display: "Georgia"; */
+}
+
+/* Base Styles */
+body {
+  @apply font-sans text-neutral-dark bg-neutral-lightest;
+  /* font-sans uses Tailwind's default sans-serif stack including Inter */
+}
+
+/* Add any other global custom component styles or base styles below */
+/* Simple style for active tab (used in signup-login.html) */
+.tab-active {
+    border-color: #3B82F6; /* primary color */
+    color: #3B82F6;
+}
+/* Hide elements by default (used for Alpine.js) */
+[x-cloak] { display: none !important; }

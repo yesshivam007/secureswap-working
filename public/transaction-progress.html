@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Progress - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+     <style>
+        /* Styles for loading/error states and status badges */
+        body[data-status="loading"] #progress-content,
+        body[data-status="error"] #progress-content,
+        body[data-status="unauthorized"] #progress-content,
+        body[data-status="not-found"] #progress-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading Transaction...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
+        #error-message { display: none; }
+        body[data-status="error"] #error-message,
+        body[data-status="unauthorized"] #error-message,
+        body[data-status="not-found"] #error-message { display: block; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; text-transform: capitalize; display: inline-block; }
+        .status-pending_payment { background-color: #FEF3C7; color: #92400E; }
+        .status-payment_received, .status-processing_delivery { background-color: #DBEAFE; color: #1E40AF; }
+        .status-item_shipped, .status-service_rendered { background-color: #D1FAE5; color: #065F46; }
+        .status-pending_receipt_confirmation { background-color: #FEF9C3; color: #92400E; }
+        .status-completed { background-color: #DCFCE7; color: #166534; }
+        .status-rejected, .status-cancelled, .status-disputed { background-color: #FEE2E2; color: #991B1B; }
+        .status-pending_confirmation { background-color: #E0E7FF; color: #3730A3; }
+     </style>
+</head>
+<body class="bg-neutral-lightest" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div class="flex items-center space-x-4">
+                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm" id="dashboard-link"> &larr; Back to Dashboard</a>
+                 <span id="user-email" class="text-neutral text-sm hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
+                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login to View</a>
+            </div>
+        </nav>
+    </header>
+
+     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"></div>
+
+    <main id="progress-content" class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Transaction Progress</h1>
+        <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
+            <div class="mb-6 pb-6 border-b">
+                 <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Deal Summary</h2>
+                 <div class="space-y-2 text-neutral-dark text-sm">
+                     <p><strong>Deal ID:</strong> <span id="deal-id" class="font-mono text-xs">[Loading...]</span></p>
+                     <p><strong>Description:</strong> <span id="deal-description">[Loading...]</span></p>
+                     <p><strong>Amount:</strong> <span class="font-semibold">₹<span id="deal-amount">[Loading...]</span> INR</span></p>
+                     <p><strong>Buyer:</strong> <span id="buyer-email">[Loading...]</span></p>
+                     <p><strong>Seller:</strong> <span id="seller-email">[Loading...]</span></p>
+                     <p><strong>Status:</strong> <span id="deal-status" class="status-badge">[Loading...]</span></p>
+                 </div>
+            </div>
+             <div id="action-area">
+                 <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Next Steps</h2>
+                 <div id="action-content" class="p-4 bg-gray-50 rounded-md text-center">
+                     <p class="text-neutral">[Loading actions...]</p>
+                 </div>
+             </div>
+              <div id="action-message" class="text-sm hidden mt-6 text-center p-3 rounded-md"></div>
+        </div>
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
+             <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
+             <a href="terms.html" class="hover:text-white">Terms of Service</a>
+        </div>
+    </footer>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script type="module">
+        // Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig, razorpayKeyId } from './js/firebase-config.js'; // Ensure razorpayKeyId is exported
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null, dealId = null, dealData = null, userRole = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for Transaction Progress");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            setPageStatus('error', "Error loading application services.");
+        }
+
+        // --- DOM Elements ---
+        let userEmailSpan, logoutButton, dashboardLink, loginLink, errorMessageDiv, progressContent,
+            dealIdSpan, dealDescriptionSpan, dealAmountSpan, buyerEmailSpan, sellerEmailSpan, dealStatusSpan,
+            actionArea, actionContent, actionMessageDiv;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Assign elements
+            userEmailSpan = document.getElementById('user-email');
+            logoutButton = document.getElementById('logout-button');
+            dashboardLink = document.getElementById('dashboard-link');
+            loginLink = document.getElementById('login-link');
+            errorMessageDiv = document.getElementById('error-message');
+            progressContent = document.getElementById('progress-content');
+            dealIdSpan = document.getElementById('deal-id');
+            dealDescriptionSpan = document.getElementById('deal-description');
+            dealAmountSpan = document.getElementById('deal-amount');
+            buyerEmailSpan = document.getElementById('buyer-email');
+            sellerEmailSpan = document.getElementById('seller-email');
+            dealStatusSpan = document.getElementById('deal-status');
+            actionArea = document.getElementById('action-area');
+            actionContent = document.getElementById('action-content');
+            actionMessageDiv = document.getElementById('action-message');
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            dealId = urlParams.get('dealId');
+            if (!dealId) {
+                setPageStatus('error', "No Deal ID provided in the URL.");
+            }
+            // Initial data fetch is triggered by onAuthStateChanged below
+        });
+
+        // --- Helper: Set Page Status & Message ---
+        function setPageStatus(status, message = '') {
+            document.body.dataset.status = status;
+            if (errorMessageDiv && message) errorMessageDiv.textContent = message;
+            const contentEl = document.getElementById('progress-content');
+            if (contentEl) {
+                 contentEl.style.display = (status === 'loaded') ? 'block' : 'none';
+            }
+        }
+
+         // --- Helper: Show Action Message ---
+         function showActionMessage(message, isError = false) {
+             if (actionMessageDiv) {
+                actionMessageDiv.textContent = message;
+                actionMessageDiv.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+                actionMessageDiv.classList.add(isError ? 'bg-red-50' : 'bg-green-50', isError ? 'text-red-700' : 'text-green-700');
+            }
+        }
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
+                if(logoutButton) logoutButton.classList.remove('hidden');
+                if(dashboardLink) dashboardLink.classList.remove('hidden');
+                if(loginLink) loginLink.classList.add('hidden');
+                if (dealId) fetchAndDisplayTransaction(); else setPageStatus('error', "Deal ID is missing.");
+            } else {
+                currentUser = null;
+                if(userEmailSpan) userEmailSpan.classList.add('hidden');
+                if(logoutButton) logoutButton.classList.add('hidden');
+                if(dashboardLink) dashboardLink.classList.add('hidden');
+                if(loginLink) loginLink.classList.remove('hidden');
+                if (dealId) setPageStatus('unauthorized', "Please log in to view this transaction."); else setPageStatus('error', "Deal ID is missing.");
+            }
+        });
+
+        // --- Fetch and Display Transaction Data & Actions ---
+        async function fetchAndDisplayTransaction() {
+             if (!dealId || !db || !currentUser) return;
+            setPageStatus('loading');
+            try {
+                const dealDocRef = doc(db, "deals", dealId);
+                const dealDocSnap = await getDoc(dealDocRef);
+                if (dealDocSnap.exists()) {
+                    dealData = dealDocSnap.data();
+                    const isCreator = dealData.creatorUid === currentUser.uid;
+                    const isOtherParty = dealData.otherPartyEmail === currentUser.email;
+                    const isBuyer = dealData.buyerUid === currentUser.uid;
+                    const isSeller = dealData.sellerUid === currentUser.uid;
+                    const isUserInvolved = isCreator || isOtherParty || isBuyer || isSeller;
+
+                    if (!isUserInvolved && !['rejected', 'cancelled', 'completed'].includes(dealData.status)) {
+                        setPageStatus('unauthorized', "You are not authorized to view this transaction."); return;
+                    }
+                    if (dealData.status === 'pending_confirmation' && isOtherParty) {
+                         window.location.href = `deal-confirmation.html?dealId=${dealId}`; return;
+                    }
+
+                    userRole = isBuyer ? 'Buyer' : isSeller ? 'Seller' : null; // Role is relevant after confirmation
+                    displayTransactionDetails(dealData);
+                    updateActionArea(dealData.status);
+                    setPageStatus('loaded');
+                } else { setPageStatus('not-found', "Transaction not found."); }
+            } catch (error) { console.error("Error getting transaction document:", error); setPageStatus('error', "Error fetching transaction details."); }
+        }
+
+        // --- Helper to display transaction details ---
+        function displayTransactionDetails(data) {
+             if(dealIdSpan) dealIdSpan.textContent = dealId;
+             if(dealDescriptionSpan) dealDescriptionSpan.textContent = data.description || 'N/A';
+             if(dealAmountSpan) dealAmountSpan.textContent = data.amount?.toFixed(2) || 'N/A';
+             if(buyerEmailSpan) buyerEmailSpan.textContent = data.buyerEmail || '[Pending Confirmation]';
+             if(sellerEmailSpan) sellerEmailSpan.textContent = data.sellerEmail || '[Pending Confirmation]';
+             if(dealStatusSpan) {
+                 const statusText = data.status.replace(/_/g, ' ');
+                 dealStatusSpan.textContent = statusText;
+                 dealStatusSpan.className = `status-badge status-${data.status}`;
+             }
+        }
+
+        // --- Update Action Area based on Status and Role ---
+        function updateActionArea(status) {
+            if (!actionContent || !currentUser || !dealData) return;
+            const currentUserIsBuyer = dealData.buyerUid === currentUser.uid;
+            const currentUserIsSeller = dealData.sellerUid === currentUser.uid;
+            const currentUserIsCreator = dealData.creatorUid === currentUser.uid;
+
+            actionContent.innerHTML = ''; // Clear previous content
+            let confirmDeliveryBtn, confirmReceiptBtn, payButton;
+
+            switch (status) {
+                case 'pending_payment':
+                    if (currentUserIsBuyer) {
+                        actionContent.innerHTML = `<p class="mb-4 text-neutral">Please proceed with the payment of ₹${dealData.amount.toFixed(2)}.</p><button id="pay-button" class="bg-green-600 text-white px-8 py-2 rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50">Pay Now with Razorpay</button>`;
+                        payButton = document.getElementById('pay-button');
+                        if (payButton) payButton.addEventListener('click', handlePayment);
+                    } else if (currentUserIsSeller) {
+                        actionContent.innerHTML = `<p class="text-neutral">Waiting for buyer (${dealData.buyerEmail}) to pay.</p>`;
+                    } else { actionContent.innerHTML = `<p class="text-neutral">Waiting for buyer to pay.</p>`; }
+                    break;
+
+                case 'payment_received':
+                     if (currentUserIsSeller) {
+                        actionContent.innerHTML = `<p class="mb-4 text-neutral">Payment received! Please deliver the item/service to ${dealData.buyerEmail}.</p><button id="confirm-delivery-button" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50">Confirm Delivery / Shipment</button><p class="text-xs text-neutral mt-2">(Click once delivered)</p>`;
+                        confirmDeliveryBtn = document.getElementById('confirm-delivery-button');
+                        if(confirmDeliveryBtn) confirmDeliveryBtn.addEventListener('click', handleConfirmDelivery);
+                    } else if (currentUserIsBuyer) {
+                        actionContent.innerHTML = `<p class="text-neutral">Payment successful! Waiting for seller (${dealData.sellerEmail}) to deliver the item/service.</p>`;
+                    } else { actionContent.innerHTML = `<p class="text-neutral">Payment received. Waiting for seller to deliver.</p>`; }
+                    break;
+
+                case 'item_shipped':
+                     if (currentUserIsBuyer) {
+                         actionContent.innerHTML = `<p class="mb-4 text-neutral">The seller (${dealData.sellerEmail}) has marked the item as delivered/shipped. Please confirm once you have received it satisfactorily.</p><button id="confirm-receipt-button" class="bg-secondary text-white px-6 py-2 rounded-md hover:bg-secondary-dark transition duration-300 disabled:opacity-50">Confirm Receipt</button>`;
+                         confirmReceiptBtn = document.getElementById('confirm-receipt-button');
+                         if(confirmReceiptBtn) confirmReceiptBtn.addEventListener('click', handleConfirmReceipt); // Listener added here
+                     } else if (currentUserIsSeller) {
+                         actionContent.innerHTML = `<p class="text-neutral">You have confirmed delivery. Waiting for the buyer (${dealData.buyerEmail}) to confirm receipt.</p>`;
+                     } else { actionContent.innerHTML = `<p class="text-neutral">Item shipped. Waiting for buyer to confirm receipt.</p>`; }
+                     break;
+
+                case 'completed': actionContent.innerHTML = `<p class="text-green-600 font-medium">This transaction is complete.</p>`; break;
+                case 'rejected': case 'cancelled': actionContent.innerHTML = `<p class="text-red-600 font-medium">This transaction was ${status}.</p>`; break;
+                case 'pending_confirmation':
+                     if (currentUserIsCreator) { actionContent.innerHTML = `<p class="text-neutral">Waiting for ${dealData.otherPartyEmail || 'other party'} to confirm the deal.</p>`; }
+                     else { actionContent.innerHTML = `<p class="text-neutral">This deal is waiting for confirmation.</p>`; }
+                     break;
+                default: actionContent.innerHTML = `<p class="text-neutral">Current status: ${status ? status.replace(/_/g, ' ') : 'Unknown'}</p>`;
+            }
+        }
+
+        // --- Handle Payment Initiation (Calls Cloud Function) ---
+        async function handlePayment() {
+            if (!dealData || !currentUser || !razorpayKeyId || razorpayKeyId === "YOUR_RAZORPAY_TEST_KEY_ID" || !dealId) { showActionMessage("Payment configuration error or missing data.", true); return; }
+            const payButton = document.getElementById('pay-button');
+            if(payButton) payButton.disabled = true;
+            showActionMessage("Creating payment order...", false);
+
+            // ** REPLACE WITH YOUR ACTUAL FUNCTION URL **
+            const createOrderUrl = "https://us-central1-swap-prod-6b04e.cloudfunctions.net/createRazorpayOrder"; // <<< IMPORTANT
+
+            let orderResponse;
+            try {
+                 const response = await fetch(createOrderUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: dealData.amount * 100, currency: dealData.currency || "INR", receipt: dealId }) });
+                 if (!response.ok) { let errorData = {}; try { errorData = await response.json(); } catch (e) {} throw new Error(`Failed to create order: ${response.statusText} - ${errorData.error || 'Unknown function error'}`); }
+                 orderResponse = await response.json();
+                 if (!orderResponse || !orderResponse.orderId) throw new Error("Invalid order response from function.");
+            } catch (error) { console.error("Error calling createRazorpayOrder function:", error); showActionMessage(`Error creating payment order: ${error.message}`, true); if(payButton) payButton.disabled = false; return; }
+
+            // Prepare Razorpay options
+            const options = {
+                "key": razorpayKeyId, "amount": orderResponse.amount, "currency": orderResponse.currency, "name": "SecureSwap Escrow", "description": `Deal: ${dealData.description.substring(0,50)}...`,
+                "order_id": orderResponse.orderId, // Use server-generated order_id
+                // --- UPDATED HANDLER to call verification function ---
+                "handler": async function (response){
+                    console.log("Razorpay payment attempt response:", response);
+                    showActionMessage("Payment successful! Verifying...", false);
+                    if(payButton) payButton.disabled = true; // Keep disabled
+
+                    // ** REPLACE WITH YOUR ACTUAL FUNCTION URL **
+                    const verifyPaymentUrl = "https://us-central1-swap-prod-6b04e.cloudfunctions.net/verifyRazorpayPayment"; // <<< IMPORTANT
+
+                    try {
+                        console.log("Calling verifyRazorpayPayment function at:", verifyPaymentUrl);
+                        const verificationResponse = await fetch(verifyPaymentUrl, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                dealId: dealId
+                            })
+                        });
+                        const verificationResult = await verificationResponse.json();
+                        if (!verificationResponse.ok) throw new Error(verificationResult.error || `Verification failed: ${verificationResponse.status}`);
+
+                        // Handle SUCCESSFUL verification
+                        console.log("Payment verification successful:", verificationResult);
+                        dealData.status = 'payment_received'; // Update local data
+                        displayTransactionDetails(dealData); updateActionArea(dealData.status);
+                        showActionMessage("Payment verified! Waiting for seller.", false);
+
+                    } catch (error) {
+                        // Handle verification FAILURE
+                        console.error("Payment verification failed:", error);
+                        showActionMessage(`Payment Verification Failed: ${error.message}. Please contact support if payment was deducted.`, true);
+                        // Keep button disabled after failed verification attempt
+                    }
+                }, // --- END OF UPDATED HANDLER ---
+                 "prefill": { "email": currentUser.email, "name": currentUser.displayName || "" }, "notes": { "deal_id": dealId, "user_id": currentUser.uid, "buyer_email": dealData.buyerEmail, "seller_email": dealData.sellerEmail }, "theme": { "color": "#3B82F6" }
+            };
+            console.log("Razorpay Options:", JSON.stringify(options, null, 2));
+            // Open Razorpay Checkout
+             try {
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){ console.error("Razorpay payment failed:", response.error); showActionMessage(`Payment Failed: ${response.error.description || 'Unknown Error'} (Code: ${response.error.code || 'N/A'})`, true); if(payButton) payButton.disabled = false; });
+                rzp.open();
+             } catch (rzpError) { console.error("Error opening Razorpay checkout:", rzpError); showActionMessage("Could not initiate payment.", true); if(payButton) payButton.disabled = false; }
+        }
+
+        // --- Handle Confirm Delivery (Seller Action) ---
+        async function handleConfirmDelivery() {
+             if (!currentUser || !db || !dealId || !dealData || userRole !== 'Seller' || dealData.status !== 'payment_received') { showActionMessage("Cannot confirm delivery. Invalid state or not authorized.", true); return; }
+             const confirmButton = document.getElementById('confirm-delivery-button');
+             if(confirmButton) confirmButton.disabled = true;
+             showActionMessage("", false);
+             const updateData = { status: 'item_shipped', deliveredAt: serverTimestamp() };
+             try {
+                 const dealDocRef = doc(db, "deals", dealId); await updateDoc(dealDocRef, updateData);
+                 dealData.status = 'item_shipped'; displayTransactionDetails(dealData); updateActionArea(dealData.status); showActionMessage("Delivery confirmed! Waiting for buyer.", false);
+             } catch (error) { console.error("Error updating deal status to item_shipped:", error); showActionMessage("Failed to confirm delivery.", true); if(confirmButton) confirmButton.disabled = false; }
+        }
+
+        // --- Handle Confirm Receipt (Buyer Action) ---
+        async function handleConfirmReceipt() {
+             if (!currentUser || !db || !dealId || !dealData || userRole !== 'Buyer' || dealData.status !== 'item_shipped') { showActionMessage("Cannot confirm receipt. Invalid state or not authorized.", true); return; }
+             const confirmButton = document.getElementById('confirm-receipt-button');
+             if(confirmButton) confirmButton.disabled = true;
+             showActionMessage("Confirming receipt...", false);
+             const updateData = { status: 'completed', completedAt: serverTimestamp() };
+             console.warn("PAYOUT LOGIC REQUIRED HERE (Backend/Firebase Function)"); // Payout Trigger Placeholder
+             try {
+                 const dealDocRef = doc(db, "deals", dealId); await updateDoc(dealDocRef, updateData);
+                 dealData.status = 'completed'; displayTransactionDetails(dealData); updateActionArea(dealData.status); showActionMessage("Receipt confirmed! Transaction complete.", false);
+             } catch (error) { console.error("Error updating deal status to completed:", error); showActionMessage("Failed to confirm receipt.", true); if(confirmButton) confirmButton.disabled = false; }
+        }
+
+        // --- Logout Handler ---
+        async function handleLogout() {
+             if (!auth) return;
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
+        }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

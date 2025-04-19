@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+</head>
+<body class="bg-neutral-lightest">
+
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div> <a href="/" class="text-neutral hover:text-primary">&larr; Back to Home</a> </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 md:py-20 flex justify-center">
+        <div class="bg-white p-8 md:p-12 rounded-lg shadow-lg w-full max-w-2xl">
+             <h2 class="text-2xl font-bold text-neutral-darkest mb-8 text-center">Create Your SecureSwap Account</h2>
+             <form id="signup-form" class="space-y-6">
+                 <div>
+                    <label for="signup-name" class="block text-sm font-medium text-neutral-dark">Full Name</label>
+                    <input type="text" id="signup-name" name="name" required autocomplete="name" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-neutral-dark">Email address</label>
+                    <input type="email" id="signup-email" name="email" required autocomplete="email" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-neutral-dark">Password</label>
+                    <input type="password" id="signup-password" name="password" required minlength="6" autocomplete="new-password" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                     <p class="mt-1 text-xs text-neutral">Minimum 6 characters</p>
+                </div>
+                 <div>
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-neutral-dark">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" name="confirm_password" required autocomplete="new-password" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+
+                <div class="pt-4 border-t border-neutral-light space-y-4">
+                     <h3 class="text-lg font-medium text-neutral-dark mb-1">Verification Details (KYC)</h3>
+                     <p class="text-sm text-neutral mb-4">Required for security and enabling payouts. Manually verified by Admin.</p>
+                     <div>
+                        <label for="signup-pan" class="block text-sm font-medium text-neutral-dark">PAN Card Number</label>
+                        <input type="text" id="signup-pan" name="pan" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter 10-character PAN Number (e.g., ABCDE1234F)" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm uppercase">
+                         <p class="mt-1 text-xs text-neutral">Enter your valid 10-digit PAN number.</p>
+                    </div>
+                    <div>
+                        <label for="signup-id-card" class="block text-sm font-medium text-neutral-dark">Upload ID Card</label>
+                        <input type="file" id="signup-id-card" name="id_card" required accept="image/png, image/jpeg, image/jpg, application/pdf" class="mt-1 block w-full text-sm text-neutral-dark file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-light file:text-primary-dark hover:file:bg-blue-100 cursor-pointer border border-neutral-light rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+                        <p class="mt-1 text-xs text-neutral">Upload a clear image or PDF of your PAN/Aadhaar/Voter ID/Driving License. Max 5MB.</p>
+                    </div>
+                 </div>
+
+                  <div class="pt-4 border-t border-neutral-light">
+                     <h3 class="text-lg font-medium text-neutral-dark mb-3">Bank Account Details (for Payouts)</h3>
+                      <p class="text-sm text-neutral mb-4">Required to receive payments as a seller. Ensure details are correct.</p>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="signup-account-number" class="block text-sm font-medium text-neutral-dark">Bank Account Number</label>
+                            <input type="text" inputmode="numeric" id="signup-account-number" name="account_number" required pattern="\d+" title="Enter numbers only" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="signup-ifsc" class="block text-sm font-medium text-neutral-dark">IFSC Code</label>
+                            <input type="text" id="signup-ifsc" name="ifsc" required pattern="^[A-Z]{4}0[A-Z0-9]{6}$" title="Enter valid 11-character IFSC code (e.g., SBIN0123456)" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm uppercase">
+                        </div>
+                     </div>
+                 </div>
+
+                 <div class="flex items-start pt-4 border-t border-neutral-light">
+                    <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded mt-1">
+                    <label for="terms" class="ml-2 block text-sm text-neutral-dark"> I agree to the <a href="terms.html" target="_blank" class="font-medium text-primary hover:underline">Terms of Service</a> and <a href="privacy.html" target="_blank" class="font-medium text-primary hover:underline">Privacy Policy</a>. </label>
+                  </div>
+
+                <div id="signup-error" class="text-red-600 text-sm hidden mt-2 text-center p-2 bg-red-50 rounded-md"></div>
+
+                <div>
+                    <button type="submit" id="signup-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 disabled:opacity-50"> Create Account </button>
+                </div>
+                 <p class="text-center text-sm text-neutral"> Already have an account? <a href="login.html" class="font-medium text-primary hover:text-primary-dark focus:outline-none"> Login </a> </p>
+             </form>
+        </div>
+    </main>
+
+     <footer class="bg-neutral-darkest text-neutral-light mt-16">
+        <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
+             <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
+             <a href="terms.html" class="hover:text-white">Terms of Service</a>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Imports - Added Storage imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"; // Added Storage
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // Initialize Firebase
+        let app, auth, db, storage; // Added storage
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            storage = getStorage(app); // Initialize Storage
+            console.log("Firebase Initialized (Auth, Firestore, Storage)");
+        } catch (error) { console.error("Firebase initialization failed:", error); /* Handle error */ }
+
+        // DOM Elements
+        let signupForm, signupErrorDiv, signupButton, idCardInput; // Added idCardInput
+         document.addEventListener('DOMContentLoaded', () => {
+             signupForm = document.getElementById('signup-form');
+             signupErrorDiv = document.getElementById('signup-error');
+             signupButton = document.getElementById('signup-button');
+             idCardInput = document.getElementById('signup-id-card'); // Get file input
+             if(signupForm) {
+                 signupForm.addEventListener('submit', handleSignup);
+             }
+             const currentYearElement = document.getElementById('current-year');
+             if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+         });
+
+         // Helper functions (showAuthError, setButtonDisabled, getFriendlyErrorMessage) remain the same
+         function showAuthError(element, message) { if(element){ element.textContent = message; element.classList.remove('hidden');} }
+         function setButtonDisabled(disabled) { if(signupButton) signupButton.disabled = disabled; }
+         function getFriendlyErrorMessage(error) { /* ... error mapping ... */ return 'An unexpected error occurred.'; }
+
+
+        // Signup Handler (UPDATED)
+        async function handleSignup(event) {
+            event.preventDefault();
+            if (!auth || !db || !storage || !signupErrorDiv || !idCardInput) {
+                showAuthError(signupErrorDiv, "Initialization error. Please refresh.");
+                return;
+             }
+            signupErrorDiv.classList.add('hidden');
+            setButtonDisabled(true);
+            showAuthError(signupErrorDiv, ""); // Clear previous errors
+
+            // Get form values
+            const name = signupForm.name.value;
+            const email = signupForm.email.value;
+            const password = signupForm.password.value;
+            const confirmPassword = signupForm.confirm_password.value;
+            const pan = signupForm.pan.value.toUpperCase();
+            const accountNumber = signupForm.account_number.value;
+            const ifsc = signupForm.ifsc.value.toUpperCase();
+            const terms = signupForm.terms.checked;
+            const idFile = idCardInput.files[0]; // Get the selected file
+
+            // Validation
+            if (password !== confirmPassword) { showAuthError(signupErrorDiv, "Passwords do not match."); setButtonDisabled(false); return; }
+            if (password.length < 6) { showAuthError(signupErrorDiv, "Password minimum 6 characters."); setButtonDisabled(false); return; }
+            if (!terms) { showAuthError(signupErrorDiv, "Please agree to the terms."); setButtonDisabled(false); return; }
+            if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) { showAuthError(signupErrorDiv, "Invalid PAN format."); setButtonDisabled(false); return; }
+            if (!/^\d+$/.test(accountNumber)) { showAuthError(signupErrorDiv, "Invalid Account Number."); setButtonDisabled(false); return; }
+            if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) { showAuthError(signupErrorDiv, "Invalid IFSC Code."); setButtonDisabled(false); return; }
+            if (!idFile) { showAuthError(signupErrorDiv, "Please upload an ID card file."); setButtonDisabled(false); return; } // Check if file selected
+
+             // Optional: Add file size validation (e.g., max 5MB)
+             const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+             if (idFile.size > maxSize) {
+                 showAuthError(signupErrorDiv, "File is too large. Maximum size is 5MB.");
+                 setButtonDisabled(false); return;
+             }
+
+            // Show processing message
+            showAuthError(signupErrorDiv, "Creating account and uploading ID...");
+            signupErrorDiv.classList.remove('text-red-600', 'bg-red-50');
+            signupErrorDiv.classList.add('text-blue-600', 'bg-blue-50'); // Use blue for processing message
+
+
+            try {
+              // 1. Create user in Firebase Auth
+              const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+              const user = userCredential.user;
+              console.log("User created:", user.uid);
+              showAuthError(signupErrorDiv, "Account created. Uploading ID..."); // Update progress
+
+              // 2. Upload ID Card to Firebase Storage
+              const fileExtension = idFile.name.split('.').pop();
+              const storagePath = `kyc_documents/${user.uid}/id_card.${fileExtension}`;
+              const storageRef = ref(storage, storagePath);
+
+              console.log(`Uploading file to: ${storagePath}`);
+              const uploadResult = await uploadBytes(storageRef, idFile);
+              console.log("File uploaded successfully:", uploadResult);
+              showAuthError(signupErrorDiv, "ID uploaded. Saving details..."); // Update progress
+
+              // 3. Get Download URL
+              const downloadURL = await getDownloadURL(uploadResult.ref);
+              console.log("File download URL:", downloadURL);
+
+              // 4. Create user document in Firestore (including ID Card URL)
+              const userDocRef = doc(db, "users", user.uid);
+              await setDoc(userDocRef, {
+                uid: user.uid,
+                name: name,
+                email: email,
+                createdAt: serverTimestamp(),
+                kycDetails: {
+                    panNumber: pan,
+                    idCardUrl: downloadURL, // Store the download URL
+                    status: 'pending'
+                },
+                bankDetails: {
+                    accountNumber: accountNumber,
+                    ifsc: ifsc,
+                    status: 'pending',
+                    fundAccountId: null
+                },
+                isVerified: false
+              });
+              console.log("User data saved to Firestore");
+
+              // 5. Redirect to dashboard
+              window.location.href = 'dashboard.html';
+
+            } catch (error) {
+              console.error("Signup or Upload failed:", error);
+              // Handle specific errors (e.g., storage permission errors)
+              let friendlyError = getFriendlyErrorMessage(error);
+              if (error.code?.startsWith('storage/')) {
+                   friendlyError = `ID Card Upload Failed: ${error.message}`;
+              }
+              showAuthError(signupErrorDiv, friendlyError);
+              signupErrorDiv.classList.remove('text-blue-600', 'bg-blue-50'); // Reset style on error
+              signupErrorDiv.classList.add('text-red-600', 'bg-red-50');
+              setButtonDisabled(false);
+            }
+        }
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+     <style>
+        /* Styles remain the same */
+        body[data-status="loading"] #profile-content,
+        body[data-status="error"] #profile-content,
+        body[data-status="unauthorized"] #profile-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading Profile...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
+        #error-message { display: none; }
+        body[data-status="unauthorized"] #error-message { display: block; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; text-transform: capitalize; display: inline-block; }
+        .status-pending { background-color: #FEF3C7; color: #92400E; }
+        .status-verified { background-color: #DCFCE7; color: #166534; }
+        .status-rejected { background-color: #FEE2E2; color: #991B1B; }
+        .status-missing { background-color: #F3F4F6; color: #4B5563; }
+        .view-id-link { font-size: 0.75rem; color: #3B82F6; text-decoration: underline; margin-left: 5px; }
+        .view-id-link:hover { color: #2563EB; }
+        .inline-edit-input { border: 1px solid transparent; padding: 2px 4px; margin-left: -4px; border-radius: 4px; }
+        .inline-edit-input:focus { border-color: #3B82F6; outline: none; background-color: #EFF6FF; }
+        .save-btn { margin-left: 8px; font-size: 0.75rem; padding: 2px 6px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); max-width: 500px; width: 90%; }
+        .modal-hidden { display: none; }
+     </style>
+</head>
+<body class="bg-neutral-lightest" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div class="flex items-center space-x-4">
+                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm" id="dashboard-link"> &larr; Back to Dashboard</a>
+                 <span id="user-email-display" class="text-neutral text-sm hidden"></span> <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
+                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login</a>
+            </div>
+        </nav>
+    </header>
+
+     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"> Please log in to view your profile. </div>
+
+    <main id="profile-content" class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Your Profile</h1>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-xl font-semibold text-neutral-darkest mb-4 border-b pb-2">Personal Information</h2>
+                     <div class="space-y-3 text-sm">
+                        <div class="flex items-center"> <strong class="w-24 inline-block text-neutral-dark flex-shrink-0">Name: </strong> <input type="text" id="user-name" name="name" class="inline-edit-input flex-grow text-neutral" disabled> <button id="edit-name-btn" class="text-xs text-primary hover:underline ml-2">Edit</button> <button id="save-name-btn" class="action-btn btn-approve save-btn hidden">Save</button> <button id="cancel-name-btn" class="action-btn btn-reject save-btn hidden">Cancel</button> </div>
+                        <p><strong class="w-24 inline-block text-neutral-dark">Email:</strong> <span id="user-email" class="text-neutral">[Loading...]</span></p>
+                        <p><strong class="w-24 inline-block text-neutral-dark">Joined:</strong> <span id="user-joined-date" class="text-neutral">[Loading...]</span></p>
+                    </div>
+                     <div id="name-update-message" class="text-xs hidden mt-3 text-center p-2 rounded-md"></div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-xl font-semibold text-neutral-darkest mb-4 border-b pb-2">KYC Verification</h2>
+                      <div class="space-y-3 text-sm">
+                         <p><strong class="w-24 inline-block text-neutral-dark">Status:</strong> <span id="kyc-status" class="status-badge">[Loading...]</span></p>
+                         <p><strong class="w-24 inline-block text-neutral-dark">PAN:</strong> <span id="user-pan" class="text-neutral">[Loading...]</span></p>
+                         <div id="id-card-link-container"> <strong class="w-24 inline-block text-neutral-dark">ID Card:</strong> <span id="id-card-link" class="text-neutral">[Loading...]</span> </div>
+                     </div>
+                     <p class="text-xs text-neutral-dark mt-4 italic">KYC details are verified by the admin team and cannot be edited here. Contact support for issues.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-xl font-semibold text-neutral-darkest mb-4 border-b pb-2">Bank Account Details</h2>
+                      <div class="space-y-3 text-sm">
+                         <p><strong class="w-28 inline-block text-neutral-dark">Status:</strong> <span id="bank-status" class="status-badge">[Loading...]</span></p>
+                         <p><strong class="w-28 inline-block text-neutral-dark">Account No:</strong> <span id="user-account" class="text-neutral">[Loading...]</span></p>
+                         <p><strong class="w-28 inline-block text-neutral-dark">IFSC Code:</strong> <span id="user-ifsc" class="text-neutral">[Loading...]</span></p>
+                     </div>
+                      <p class="text-xs text-neutral-dark mt-4 italic">Bank details are used for payouts and are verified by the admin team. Contact support to update.</p>
+                </div>
+            </div>
+            <div class="md:col-span-1 space-y-6">
+                 <div class="bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-xl font-semibold text-neutral-darkest mb-4 border-b pb-2">Account Security</h2>
+                     <div class="space-y-4">
+                         <button id="change-password-btn" class="w-full text-sm bg-neutral-light hover:bg-gray-200 text-neutral-dark py-2 px-4 rounded-md transition duration-200"> Change Password </button>
+                         <button id="profile-logout-button" class="w-full text-sm bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-md transition duration-200"> Logout </button>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="change-password-modal" class="modal-overlay modal-hidden">
+        <div class="modal-content">
+            <h3 class="text-lg font-medium leading-6 text-neutral-darkest mb-4">Change Your Password</h3>
+            <form id="change-password-form" class="space-y-4">
+                <div> <label for="current-password" class="block text-sm font-medium text-neutral-dark">Current Password</label> <input type="password" id="current-password" name="current_password" required autocomplete="current-password" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"> </div>
+                <div> <label for="new-password" class="block text-sm font-medium text-neutral-dark">New Password</label> <input type="password" id="new-password" name="new_password" required minlength="6" autocomplete="new-password" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"> <p class="mt-1 text-xs text-neutral">Minimum 6 characters</p> </div>
+                <div> <label for="confirm-new-password" class="block text-sm font-medium text-neutral-dark">Confirm New Password</label> <input type="password" id="confirm-new-password" name="confirm_new_password" required autocomplete="new-password" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"> </div>
+                <div id="password-change-message" class="text-xs hidden mt-3 text-center p-2 rounded-md"></div>
+                <div class="mt-5 sm:mt-6 flex flex-col sm:flex-row-reverse gap-3"> <button type="submit" id="update-password-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:w-auto sm:text-sm disabled:opacity-50"> Update Password </button> <button type="button" id="cancel-password-btn" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"> Cancel </button> </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral"> &copy; <span id="current-year"></span> SecureSwap. All rights reserved. </div>
+    </footer>
+
+    <script type="module">
+        // Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null, originalName = '';
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for Profile Page");
+        } catch (error) { console.error("Firebase initialization failed:", error); setPageStatus('unauthorized', "Error loading application services."); }
+
+        // --- DOM Elements ---
+        let userEmailDisplay, logoutButton, loginLink, profileContent, errorMessageDiv,
+            userNameInput, editNameBtn, saveNameBtn, cancelNameBtn, nameUpdateMessage,
+            userEmail, userJoinedDate,
+            kycStatusSpan, userPanSpan, idCardLinkContainer, idCardLinkSpan,
+            bankStatusSpan, userAccountSpan, userIfscSpan,
+            changePasswordBtn, profileLogoutButton,
+            passwordModal, passwordForm, currentPasswordInput, newPasswordInput,
+            confirmNewPasswordInput, passwordChangeMessage, updatePasswordBtn, cancelPasswordBtn;
+
+        // Assign elements after DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM Content Loaded. Assigning elements..."); // LOG
+            userEmailDisplay = document.getElementById('user-email-display');
+            logoutButton = document.getElementById('logout-button');
+            profileLogoutButton = document.getElementById('profile-logout-button');
+            loginLink = document.getElementById('login-link');
+            profileContent = document.getElementById('profile-content');
+            errorMessageDiv = document.getElementById('error-message');
+            userNameInput = document.getElementById('user-name');
+            editNameBtn = document.getElementById('edit-name-btn');
+            saveNameBtn = document.getElementById('save-name-btn');
+            cancelNameBtn = document.getElementById('cancel-name-btn');
+            nameUpdateMessage = document.getElementById('name-update-message');
+            userEmail = document.getElementById('user-email');
+            userJoinedDate = document.getElementById('user-joined-date');
+            kycStatusSpan = document.getElementById('kyc-status');
+            userPanSpan = document.getElementById('user-pan');
+            idCardLinkContainer = document.getElementById('id-card-link-container');
+            idCardLinkSpan = document.getElementById('id-card-link');
+            bankStatusSpan = document.getElementById('bank-status');
+            userAccountSpan = document.getElementById('user-account');
+            userIfscSpan = document.getElementById('user-ifsc');
+            changePasswordBtn = document.getElementById('change-password-btn');
+            passwordModal = document.getElementById('change-password-modal');
+            passwordForm = document.getElementById('change-password-form');
+            currentPasswordInput = document.getElementById('current-password');
+            newPasswordInput = document.getElementById('new-password');
+            confirmNewPasswordInput = document.getElementById('confirm-new-password');
+            passwordChangeMessage = document.getElementById('password-change-message');
+            updatePasswordBtn = document.getElementById('update-password-btn');
+            cancelPasswordBtn = document.getElementById('cancel-password-btn');
+
+            // Check if elements were found
+            console.log({ userNameInput, editNameBtn, saveNameBtn, cancelNameBtn, changePasswordBtn, passwordModal }); // LOG
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            // Event Listeners
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout); else console.warn("logoutButton not found");
+            if (profileLogoutButton) profileLogoutButton.addEventListener('click', handleLogout); else console.warn("profileLogoutButton not found");
+            if (editNameBtn) editNameBtn.addEventListener('click', enableNameEdit); else console.warn("editNameBtn not found");
+            if (saveNameBtn) saveNameBtn.addEventListener('click', handleNameUpdate); else console.warn("saveNameBtn not found");
+            if (cancelNameBtn) cancelNameBtn.addEventListener('click', cancelNameEdit); else console.warn("cancelNameBtn not found");
+            if (changePasswordBtn) changePasswordBtn.addEventListener('click', openPasswordModal); else console.warn("changePasswordBtn not found");
+            if (cancelPasswordBtn) cancelPasswordBtn.addEventListener('click', closePasswordModal); else console.warn("cancelPasswordBtn not found");
+            if (passwordForm) passwordForm.addEventListener('submit', handlePasswordUpdateSubmit); else console.warn("passwordForm not found");
+            if (passwordModal) {
+                 passwordModal.addEventListener('click', (event) => { if (event.target === passwordModal) closePasswordModal(); });
+            } else console.warn("passwordModal not found");
+
+             console.log("Event listeners attached."); // LOG
+        });
+
+        // --- Helper: Set Page Status & Message ---
+        function setPageStatus(status, message = '') {
+            console.log(`Setting page status to: ${status}`); // LOG
+             requestAnimationFrame(() => {
+                document.body.dataset.status = status;
+                if (errorMessageDiv && message && status === 'unauthorized') { errorMessageDiv.textContent = message; }
+                const contentEl = document.getElementById('profile-content');
+                if (contentEl) { contentEl.style.display = (status === 'loaded') ? 'block' : 'none'; }
+             });
+        }
+        // --- Helper: Show Action Message ---
+        function showNameUpdateMessage(message, isError = false) {
+            console.log(`Name update message: ${message} (Error: ${isError})`); // LOG
+             if (nameUpdateMessage) { /* ... */ } else console.warn("nameUpdateMessage element not found");
+        }
+        // --- Helper: Show Password Change Message ---
+        function showPasswordChangeMessage(message, isError = false) {
+             console.log(`Password change message: ${message} (Error: ${isError})`); // LOG
+             if (passwordChangeMessage) { /* ... */ } else console.warn("passwordChangeMessage element not found");
+        }
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, (user) => {
+            console.log("Auth state changed. User:", user ? user.uid : 'null'); // LOG
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                if(userEmailDisplay) { userEmailDisplay.textContent = currentUser.email; userEmailDisplay.classList.remove('hidden'); }
+                if(logoutButton) logoutButton.classList.remove('hidden');
+                if(loginLink) loginLink.classList.add('hidden');
+                // Fetch data (DOM elements assigned in DOMContentLoaded)
+                fetchAndDisplayUserData(user.uid);
+            } else {
+                currentUser = null;
+                console.log("User signed out. Redirecting...");
+                window.location.href = 'login.html';
+            }
+        });
+
+        // --- Fetch and Display User Data ---
+        async function fetchAndDisplayUserData(uid) {
+             if (!db || !currentUser) { console.error("DB or currentUser not ready for fetch"); return; }
+             console.log(`Fetching user data for profile: ${uid}`);
+             // Keep loading state until display attempt finishes
+             // setPageStatus('loading'); // Already set initially
+
+             try {
+                const userDocRef = doc(db, "users", uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    console.log("User data fetched:", userData);
+
+                    // Attempt to display data
+                    try {
+                        console.log("Attempting to display data..."); // LOG
+                        // Personal Info
+                        originalName = userData.name || '';
+                        if(userNameInput) userNameInput.value = originalName; else console.warn("userNameInput not found");
+                        if(userEmail) userEmail.textContent = userData.email || 'N/A'; else console.warn("userEmail span not found");
+                        if(userJoinedDate) userJoinedDate.textContent = userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A'; else console.warn("userJoinedDate span not found");
+                        console.log("Displayed Personal Info"); // LOG
+
+                        // KYC Info
+                        const kycStatus = userData.kycDetails?.status || 'missing';
+                        const panNumber = userData.kycDetails?.panNumber || '';
+                        const idCardUrl = userData.kycDetails?.idCardUrl;
+                        if(kycStatusSpan) { kycStatusSpan.textContent = kycStatus; kycStatusSpan.className = `status-badge status-${kycStatus}`; } else console.warn("kycStatusSpan not found");
+                        if(userPanSpan) userPanSpan.textContent = maskPan(panNumber); else console.warn("userPanSpan not found");
+                        if(idCardLinkContainer && idCardLinkSpan) {
+                             if (idCardUrl) { idCardLinkSpan.innerHTML = `<a href="${idCardUrl}" target="_blank" rel="noopener noreferrer" class="view-id-link">View Uploaded ID</a>`; }
+                             else { idCardLinkSpan.textContent = '(Not Uploaded)'; idCardLinkSpan.className = 'text-neutral text-xs italic'; }
+                        } else console.warn("idCardLinkContainer or idCardLinkSpan not found");
+                        console.log("Displayed KYC Info"); // LOG
+
+                        // Bank Info
+                        const bankStatus = userData.bankDetails?.status || 'missing';
+                        const accountNumber = userData.bankDetails?.accountNumber || '';
+                        const ifsc = userData.bankDetails?.ifsc || '';
+                        if(bankStatusSpan) { bankStatusSpan.textContent = bankStatus; bankStatusSpan.className = `status-badge status-${bankStatus}`; } else console.warn("bankStatusSpan not found");
+                        if(userAccountSpan) userAccountSpan.textContent = maskAccountNumber(accountNumber); else console.warn("userAccountSpan not found");
+                        if(userIfscSpan) userIfscSpan.textContent = ifsc || 'N/A'; else console.warn("userIfscSpan not found");
+                        console.log("Displayed Bank Info"); // LOG
+
+                        // Set status to loaded AFTER attempting to display
+                         setPageStatus('loaded');
+                         console.log("Display successful, page status set to loaded."); // LOG
+
+                    } catch (displayError) {
+                         console.error("Error *displaying* user data:", displayError);
+                         showNameUpdateMessage("Error displaying profile data.", true);
+                         setPageStatus('error', "Error displaying profile."); // Set error status if display fails
+                    }
+
+                } else {
+                    console.error("User document not found in Firestore!");
+                    showNameUpdateMessage("Could not load profile data.", true);
+                    // Display fallbacks
+                     if(userNameInput) userNameInput.value = 'N/A';
+                     if(userEmail) userEmail.textContent = currentUser?.email || 'N/A';
+                     if(userJoinedDate) userJoinedDate.textContent = 'N/A';
+                     if(kycStatusSpan) { kycStatusSpan.textContent = 'missing'; kycStatusSpan.className = 'status-badge status-missing';}
+                     if(userPanSpan) userPanSpan.textContent = 'N/A';
+                     if(idCardLinkSpan) idCardLinkSpan.textContent = 'N/A';
+                     if(bankStatusSpan) { bankStatusSpan.textContent = 'missing'; bankStatusSpan.className = 'status-badge status-missing';}
+                     if(userAccountSpan) userAccountSpan.textContent = 'N/A';
+                     if(userIfscSpan) userIfscSpan.textContent = 'N/A';
+                     setPageStatus('loaded'); // Document not found, but loading finished
+                     console.log("User document not found, displayed fallbacks, page status set to loaded."); // LOG
+                }
+            } catch (error) {
+                console.error("Error fetching user document:", error);
+                showNameUpdateMessage("Error loading profile data.", true);
+                setPageStatus('error', "Error loading profile."); // Set error status if fetch fails
+            }
+            console.log("fetchAndDisplayUserData finished."); // LOG
+        }
+
+        // --- Edit Name Logic ---
+        function enableNameEdit() {
+            console.log("enableNameEdit called"); // LOG
+            if (!userNameInput || !editNameBtn || !saveNameBtn || !cancelNameBtn) return;
+            userNameInput.disabled = false; userNameInput.focus(); userNameInput.select();
+            editNameBtn.classList.add('hidden'); saveNameBtn.classList.remove('hidden'); cancelNameBtn.classList.remove('hidden');
+        }
+        function cancelNameEdit() {
+            console.log("cancelNameEdit called"); // LOG
+             if (!userNameInput || !editNameBtn || !saveNameBtn || !cancelNameBtn) return;
+             userNameInput.disabled = true; userNameInput.value = originalName;
+             editNameBtn.classList.remove('hidden'); saveNameBtn.classList.add('hidden'); cancelNameBtn.classList.add('hidden');
+             nameUpdateMessage.classList.add('hidden');
+        }
+        async function handleNameUpdate() {
+            console.log("handleNameUpdate called"); // LOG
+            if (!db || !currentUser || !userNameInput || !editNameBtn || !saveNameBtn || !cancelNameBtn) return;
+            const newName = userNameInput.value.trim();
+            if (newName === originalName || !newName) { cancelNameEdit(); return; }
+            saveNameBtn.disabled = true; cancelNameBtn.disabled = true; showNameUpdateMessage("Saving...", false);
+            try {
+                const userDocRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userDocRef, { name: newName });
+                originalName = newName; showNameUpdateMessage("Name updated!", false); cancelNameEdit();
+            } catch (error) { console.error("Error updating name:", error); showNameUpdateMessage("Failed to update name.", true); saveNameBtn.disabled = false; cancelNameBtn.disabled = false; }
+        }
+
+        // --- Change Password Modal Logic ---
+        function openPasswordModal() {
+            console.log("openPasswordModal called"); // LOG
+            if (!passwordModal || !passwordForm) return;
+            passwordChangeMessage.classList.add('hidden'); passwordForm.reset();
+            passwordModal.classList.remove('modal-hidden');
+        }
+        function closePasswordModal() {
+             console.log("closePasswordModal called"); // LOG
+             if (!passwordModal) return;
+             passwordModal.classList.add('modal-hidden');
+        }
+        async function handlePasswordUpdateSubmit(event) {
+            event.preventDefault();
+            console.log("handlePasswordUpdateSubmit called"); // LOG
+            if (!auth.currentUser || !passwordForm || !updatePasswordBtn || !cancelPasswordBtn || !passwordChangeMessage) return;
+            const currentPassword = currentPasswordInput.value; const newPassword = newPasswordInput.value; const confirmNewPassword = confirmNewPasswordInput.value;
+            if (!currentPassword || !newPassword || !confirmNewPassword) { showPasswordChangeMessage("Please fill all fields.", true); return; }
+            if (newPassword.length < 6) { showPasswordChangeMessage("New password min 6 characters.", true); return; }
+            if (newPassword !== confirmNewPassword) { showPasswordChangeMessage("New passwords do not match.", true); return; }
+            updatePasswordBtn.disabled = true; cancelPasswordBtn.disabled = true; showPasswordChangeMessage("Processing...", false);
+            try {
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+                console.log("Attempting re-authentication...");
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                console.log("Re-authentication successful. Updating password...");
+                showPasswordChangeMessage("Current password verified. Updating...", false);
+                await updatePassword(auth.currentUser, newPassword);
+                console.log("Password updated successfully."); showPasswordChangeMessage("Password updated!", false); setTimeout(closePasswordModal, 1500);
+            } catch (error) {
+                console.error("Password change failed:", error);
+                if (error.code === 'auth/wrong-password') { showPasswordChangeMessage("Incorrect current password.", true); }
+                else if (error.code === 'auth/weak-password') { showPasswordChangeMessage("New password is too weak.", true); }
+                else if (error.code === 'auth/requires-recent-login') { showPasswordChangeMessage("Security check failed. Please log out and log back in.", true); }
+                else { showPasswordChangeMessage("Failed to update password.", true); }
+                 updatePasswordBtn.disabled = false; cancelPasswordBtn.disabled = false;
+            }
+        }
+
+        // --- Logout Handler ---
+        async function handleLogout() {
+            console.log("handleLogout called"); // LOG
+             if (!auth) return;
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
+        }
+
+        // --- Masking Helpers ---
+        function maskPan(pan) { if (!pan || pan.length < 10) return pan || 'N/A'; return `${pan.substring(0, 3)}*****${pan.substring(pan.length - 1)}`; }
+        function maskAccountNumber(accNum) { if (!accNum || accNum.length < 5) return accNum || 'N/A'; return `**** **** ${accNum.substring(accNum.length - 4)}`; }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

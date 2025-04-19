@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+     <style>
+        body[data-status="loading"] #history-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading History...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
+        #error-message { display: none; }
+        body[data-status="unauthorized"] #error-message { display: block; }
+        /* Status text colors */
+        .status-completed { color: #059669; font-weight: 500; } /* Emerald */
+        .status-rejected { color: #DC2626; font-weight: 500; } /* Red */
+        .status-cancelled { color: #DC2626; font-weight: 500; } /* Red */
+        /* Simple list styling */
+        .history-item { border-bottom: 1px solid #e5e7eb; padding: 12px 0; }
+        .history-item:last-child { border-bottom: none; }
+     </style>
+</head>
+<body class="bg-neutral-lightest" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div>
+                <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="dashboard.html" class="text-neutral hover:text-primary text-sm" id="dashboard-link"> &larr; Back to Dashboard</a>
+                <span id="user-email" class="text-neutral text-sm hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden">
+                    Logout
+                </button>
+                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login</a>
+            </div>
+        </nav>
+    </header>
+
+     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium">
+        Please log in to view your transaction history.
+     </div>
+
+    <main id="history-content" class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Transaction History</h1>
+
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full">
+            <div id="history-list-container">
+                <p id="loading-history" class="text-center text-neutral py-4">Loading history...</p>
+                <ul id="history-list" class="hidden space-y-3">
+                    </ul>
+                 <p id="no-history" class="text-center text-neutral py-4 hidden">You have no past transactions.</p>
+            </div>
+            </div>
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved.
+        </div>
+    </footer>
+
+    <script type="module">
+        // Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added Timestamp
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for History Page");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            setPageStatus('unauthorized', "Error loading application services.");
+        }
+
+        // --- DOM Elements ---
+        let userEmailSpan, logoutButton, loginLink, historyContent, errorMessageDiv,
+            loadingHistoryMsg, historyList, noHistoryMsg;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Assign elements
+            userEmailSpan = document.getElementById('user-email');
+            logoutButton = document.getElementById('logout-button');
+            loginLink = document.getElementById('login-link');
+            historyContent = document.getElementById('history-content');
+            errorMessageDiv = document.getElementById('error-message');
+            loadingHistoryMsg = document.getElementById('loading-history');
+            historyList = document.getElementById('history-list');
+            noHistoryMsg = document.getElementById('no-history');
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+        });
+
+        // --- Helper: Set Page Status & Message ---
+        function setPageStatus(status, message = '') {
+            document.body.dataset.status = status;
+            if (errorMessageDiv && message && status === 'unauthorized') {
+                 errorMessageDiv.textContent = message;
+            }
+        }
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                console.log("User logged in:", currentUser.uid);
+                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
+                if(logoutButton) logoutButton.classList.remove('hidden');
+                if(loginLink) loginLink.classList.add('hidden');
+                setPageStatus('loaded'); // Allow content display
+                fetchAndDisplayHistory(currentUser.uid); // Load history
+            } else {
+                currentUser = null;
+                console.log("User is signed out.");
+                if(userEmailSpan) userEmailSpan.classList.add('hidden');
+                if(logoutButton) logoutButton.classList.add('hidden');
+                if(loginLink) loginLink.classList.remove('hidden');
+                setPageStatus('unauthorized', "Please log in to view your transaction history.");
+            }
+        });
+
+        // --- Fetch and Display History ---
+        async function fetchAndDisplayHistory(userUid) {
+            if (!db || !historyList || !loadingHistoryMsg || !noHistoryMsg) return;
+            console.log("Fetching transaction history...");
+            loadingHistoryMsg.style.display = 'block';
+            historyList.classList.add('hidden');
+            noHistoryMsg.classList.add('hidden');
+            historyList.innerHTML = ''; // Clear previous entries
+
+            const dealsRef = collection(db, "deals");
+            const historyStatuses = ['completed', 'rejected', 'cancelled'];
+
+            // Query 1: Deals where I was BUYER and status is final
+            const buyerHistoryQuery = query(dealsRef,
+                                        where("buyerUid", "==", userUid),
+                                        where("status", "in", historyStatuses),
+                                        orderBy("createdAt", "desc")); // Order by creation date
+
+            // Query 2: Deals where I was SELLER and status is final
+            const sellerHistoryQuery = query(dealsRef,
+                                         where("sellerUid", "==", userUid),
+                                         where("status", "in", historyStatuses),
+                                         orderBy("createdAt", "desc"));
+
+            try {
+                const [buyerHistorySnapshot, sellerHistorySnapshot] = await Promise.all([
+                    getDocs(buyerHistoryQuery),
+                    getDocs(sellerHistoryQuery)
+                ]);
+
+                const historyDeals = [];
+                const dealIds = new Set(); // To prevent duplicates
+
+                buyerHistorySnapshot.forEach(doc => {
+                    if (!dealIds.has(doc.id)) {
+                        historyDeals.push({ id: doc.id, ...doc.data() });
+                        dealIds.add(doc.id);
+                    }
+                });
+                sellerHistorySnapshot.forEach(doc => {
+                     if (!dealIds.has(doc.id)) {
+                        historyDeals.push({ id: doc.id, ...doc.data() });
+                        dealIds.add(doc.id);
+                    }
+                });
+
+                // Sort combined results by creation date (descending)
+                historyDeals.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+
+                console.log(`Found ${historyDeals.length} historical transactions.`);
+                loadingHistoryMsg.style.display = 'none';
+
+                if (historyDeals.length === 0) {
+                    noHistoryMsg.classList.remove('hidden');
+                } else {
+                    historyList.classList.remove('hidden');
+                    historyDeals.forEach(deal => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'history-item';
+
+                        const userRole = (deal.buyerUid === userUid) ? 'Buyer' : 'Seller';
+                        const otherPartyEmail = (userRole === 'Buyer') ? deal.sellerEmail : deal.buyerEmail;
+                        const dealDate = deal.createdAt instanceof Timestamp ? deal.createdAt.toDate().toLocaleDateString() : 'N/A'; // Format date
+
+                         let statusColor = 'text-gray-500';
+                         if (deal.status === 'completed') statusColor = 'text-green-600';
+                         if (deal.status === 'rejected' || deal.status === 'cancelled') statusColor = 'text-red-600';
+
+                        listItem.innerHTML = `
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <div class="flex-1 min-w-0"> <p class="text-sm text-neutral-dark font-medium truncate" title="${deal.description}">${deal.description}</p>
+                                    <p class="text-xs text-neutral">With: ${otherPartyEmail || 'N/A'} | Role: ${userRole} | Date: ${dealDate}</p>
+                                </div>
+                                <div class="text-left sm:text-right flex-shrink-0 mt-1 sm:mt-0"> <p class="text-sm font-semibold ${statusColor} capitalize">${deal.status}</p>
+                                     <p class="text-xs text-neutral">Amount: ₹${deal.amount.toFixed(2)}</p>
+                                     </div>
+                            </div>
+                        `;
+                        historyList.appendChild(listItem);
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error fetching transaction history: ", error);
+                loadingHistoryMsg.style.display = 'none';
+                noHistoryMsg.textContent = "Error loading history.";
+                noHistoryMsg.classList.remove('hidden');
+            }
+        }
+
+        // --- Logout Handler ---
+        async function handleLogout() {
+             if (!auth) return;
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
+        }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

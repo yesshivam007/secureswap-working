@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+     <style>
+        body[data-status="loading"] #admin-content,
+        body[data-status="unauthorized"] #admin-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading Admin Panel...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
+        #error-message { display: none; }
+        body[data-status="unauthorized"] #error-message { display: block; }
+        /* Simple table styling */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #f9fafb; font-weight: 600; font-size: 0.875rem; color: #374151;}
+        td { font-size: 0.875rem; color: #4b5563; vertical-align: middle;} /* Added vertical-align */
+        tr:hover { background-color: #f9fafb; }
+        /* Status text colors */
+        .status-pending { color: #D97706; font-weight: 500; } /* Amber */
+        .status-verified { color: #059669; font-weight: 500; } /* Emerald */
+        .status-rejected { color: #DC2626; font-weight: 500; } /* Red */
+        .status-missing { color: #6B7280; font-style: italic; } /* Gray */
+        /* Action button styling */
+        .action-btn { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: background-color 0.2s ease; margin-right: 4px; margin-bottom: 4px; display: inline-block;}
+        .btn-approve { background-color: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
+        .btn-approve:hover { background-color: #A7F3D0; }
+        .btn-reject { background-color: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+        .btn-reject:hover { background-color: #FECACA; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* Ensure wrapping in action cell */
+        td:last-child { white-space: normal; }
+        /* Style for the View ID link */
+        .view-id-link { font-size: 0.75rem; color: #3B82F6; text-decoration: underline; margin-left: 5px; }
+        .view-id-link:hover { color: #2563EB; }
+     </style>
+</head>
+<body class="bg-neutral-lightest" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div>
+                <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap [Admin]</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                 <span id="user-email" class="text-neutral text-sm hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden">
+                    Logout
+                </button>
+                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login</a>
+            </div>
+        </nav>
+    </header>
+
+     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium">
+        Access Denied. You do not have permission to view this page.
+     </div>
+
+    <main id="admin-content" class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">User Management</h1>
+
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full overflow-x-auto">
+            <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Verify Users</h2>
+            <div id="user-list-container">
+                <p id="loading-users">Loading users...</p>
+                <table id="users-table" class="hidden min-w-full">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>KYC (PAN / ID)</th> <th>Bank Details</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        </tbody>
+                </table>
+            </div>
+             <div id="action-message" class="text-sm hidden mt-4 text-center p-3 rounded-md"></div>
+        </div>
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap Admin Panel.
+        </div>
+    </footer>
+
+    <script type="module">
+        // Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // --- !!! IMPORTANT: SET YOUR ADMIN UID HERE !!! ---
+        const ADMIN_UID = "m8Dmto1hnOYshQ2ptpKaLW0bTdH2"; // Replace with the actual UID of your admin user
+        // ----------------------------------------------------
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for Admin Panel");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            setPageStatus('unauthorized', "Error loading application services."); // Show error if init fails
+        }
+
+        // --- DOM Elements ---
+        let userEmailSpan, logoutButton, loginLink, adminContent, errorMessageDiv,
+            loadingUsersMsg, usersTable, usersTableBody, actionMessageDiv;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Assign elements
+            userEmailSpan = document.getElementById('user-email');
+            logoutButton = document.getElementById('logout-button');
+            loginLink = document.getElementById('login-link');
+            adminContent = document.getElementById('admin-content');
+            errorMessageDiv = document.getElementById('error-message');
+            loadingUsersMsg = document.getElementById('loading-users');
+            usersTable = document.getElementById('users-table');
+            usersTableBody = document.getElementById('users-table-body');
+            actionMessageDiv = document.getElementById('action-message');
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            // Ensure handleLogout is assigned correctly if called from HTML
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+        });
+
+        // --- Helper: Set Page Status & Message ---
+        function setPageStatus(status, message = '') {
+            document.body.dataset.status = status;
+            if (errorMessageDiv && message && status === 'unauthorized') {
+                 errorMessageDiv.textContent = message;
+            }
+            // Ensure adminContent exists before trying to style it
+            const contentEl = document.getElementById('admin-content');
+             if (contentEl) {
+                 contentEl.style.display = (status === 'loaded') ? 'block' : 'none';
+            }
+        }
+
+        // --- Helper: Show Action Message ---
+        function showActionMessage(message, isError = false) {
+             if (actionMessageDiv) {
+                actionMessageDiv.textContent = message;
+                actionMessageDiv.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+                actionMessageDiv.classList.add(isError ? 'bg-red-50' : 'bg-green-50', isError ? 'text-red-700' : 'text-green-700');
+                setTimeout(() => { actionMessageDiv.classList.add('hidden') }, 3000);
+            }
+        }
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                console.log("User logged in:", currentUser.uid);
+                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
+                if(logoutButton) logoutButton.classList.remove('hidden');
+                if(loginLink) loginLink.classList.add('hidden');
+
+                // **Admin Check**
+                if (currentUser.uid === ADMIN_UID) {
+                    console.log("Admin user authorized.");
+                    // Wait for DOM content to be loaded before fetching data
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', fetchAndDisplayUsers);
+                    } else {
+                        fetchAndDisplayUsers();
+                    }
+                    setPageStatus('loaded'); // Allow content to show
+                } else {
+                    console.warn("User is not admin. Access denied.");
+                    setPageStatus('unauthorized', "Access Denied. You do not have permission.");
+                }
+
+            } else {
+                currentUser = null;
+                console.log("User is signed out.");
+                if(userEmailSpan) userEmailSpan.classList.add('hidden');
+                if(logoutButton) logoutButton.classList.add('hidden');
+                if(loginLink) loginLink.classList.remove('hidden');
+                setPageStatus('unauthorized', "Please log in as an admin to view this page.");
+            }
+        });
+
+        // --- Fetch and Display Users ---
+        async function fetchAndDisplayUsers() {
+            if (!db || !usersTableBody || !loadingUsersMsg || !usersTable) {
+                console.error("Admin panel elements not ready for fetching users.");
+                return;
+            }
+            console.log("Fetching users...");
+            loadingUsersMsg.style.display = 'block';
+            usersTable.classList.add('hidden');
+            usersTableBody.innerHTML = ''; // Clear previous entries
+
+            try {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                console.log(`Found ${querySnapshot.size} users.`);
+                if (querySnapshot.empty) {
+                    loadingUsersMsg.textContent = "No users found.";
+                } else {
+                    loadingUsersMsg.style.display = 'none';
+                    usersTable.classList.remove('hidden');
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const user = docSnap.data();
+                    const userId = docSnap.id;
+                    const row = usersTableBody.insertRow();
+
+                    // Basic Info Cells
+                    row.insertCell().textContent = user.name || 'N/A';
+                    row.insertCell().textContent = user.email || 'N/A';
+
+                    // KYC Status Cell (Includes ID link)
+                    const kycCell = row.insertCell();
+                    const kycStatus = user.kycDetails?.status || 'missing';
+                    const kycValue = user.kycDetails?.panNumber || 'N/A';
+                    const idCardUrl = user.kycDetails?.idCardUrl;
+                    const kycDisplay = kycStatus !== 'missing' ? `(${kycValue})` : '';
+                    const idLinkHtml = idCardUrl ? `<a href="${idCardUrl}" target="_blank" rel="noopener noreferrer" class="view-id-link">(View ID)</a>` : '(No ID)'; // Added rel and fallback text
+                    kycCell.innerHTML = `<span class="status-${kycStatus}">${kycStatus}</span> ${kycDisplay} ${idLinkHtml}`;
+
+                     // Bank Status Cell
+                    const bankCell = row.insertCell();
+                    const bankStatus = user.bankDetails?.status || 'missing';
+                    const bankValue = user.bankDetails?.accountNumber ? `${user.bankDetails.accountNumber} / ${user.bankDetails.ifsc || 'N/A'}` : 'N/A';
+                    const bankDisplay = bankStatus !== 'missing' ? `(${bankValue})` : '';
+                    bankCell.innerHTML = `<span class="status-${bankStatus}">${bankStatus}</span> ${bankDisplay}`;
+
+                    // Actions Cell
+                    const actionsCell = row.insertCell();
+                    actionsCell.id = `actions-${userId}`;
+                    renderActionButtons(actionsCell, userId, kycStatus, bankStatus);
+
+                });
+
+            } catch (error) {
+                console.error("Error fetching users: ", error);
+                loadingUsersMsg.textContent = "Error loading users.";
+                showActionMessage("Failed to load user data.", true);
+            }
+        }
+
+        // --- Render Action Buttons ---
+        function renderActionButtons(cell, userId, kycStatus, bankStatus) {
+             cell.innerHTML = ''; // Clear existing buttons
+             // KYC Actions
+             if (kycStatus === 'pending') {
+                 cell.appendChild(createButton('Approve KYC', 'approve', () => handleVerification(userId, 'kycDetails', 'verified')));
+                 cell.appendChild(createButton('Reject KYC', 'reject', () => handleVerification(userId, 'kycDetails', 'rejected')));
+             }
+             // Bank Actions
+             if (bankStatus === 'pending') {
+                 cell.appendChild(createButton('Approve Bank', 'approve', () => handleVerification(userId, 'bankDetails', 'verified')));
+                 cell.appendChild(createButton('Reject Bank', 'reject', () => handleVerification(userId, 'bankDetails', 'rejected')));
+             }
+        }
+
+        // --- Helper to create styled buttons ---
+        function createButton(text, type, onClickHandler) {
+             const button = document.createElement('button');
+             button.textContent = text;
+             button.className = `action-btn btn-${type}`;
+             button.onclick = onClickHandler; // Assign function directly
+             return button;
+        }
+
+
+        // --- Handle Verification Update ---
+        // Make globally accessible if buttons use onclick attribute (which they don't here, so not strictly needed)
+        // window.handleVerification = async function(userId, detailType, newStatus) { ... }
+        // Keeping it as a regular function called by the onclick handler set in renderActionButtons
+        async function handleVerification(userId, detailType, newStatus) {
+            if (!db || !currentUser || currentUser.uid !== ADMIN_UID) { showActionMessage("Unauthorized action.", true); return; }
+            console.log(`Attempting to set ${detailType} status to ${newStatus} for user ${userId}`);
+            showActionMessage("Processing...", false);
+
+            const actionCell = document.getElementById(`actions-${userId}`);
+            const buttons = actionCell ? actionCell.querySelectorAll('button') : [];
+            buttons.forEach(btn => btn.disabled = true);
+
+            try {
+                const userDocRef = doc(db, "users", userId);
+                const updateData = {};
+                updateData[`${detailType}.status`] = newStatus; // Update nested status field
+
+                // --- Optional: Update overall isVerified flag ---
+                // Fetch current data to check if *both* KYC and Bank will be verified
+                let shouldSetOverallVerified = false;
+                if (newStatus === 'verified') {
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists()) {
+                        const currentData = userDocSnap.data();
+                        const otherDetailType = detailType === 'kycDetails' ? 'bankDetails' : 'kycDetails';
+                        if (currentData[otherDetailType]?.status === 'verified') {
+                            shouldSetOverallVerified = true;
+                        }
+                    }
+                }
+                // If changing status to verified AND the other detail type is already verified, set isVerified to true
+                if (shouldSetOverallVerified) {
+                    updateData['isVerified'] = true;
+                    console.log(`Setting isVerified to true for user ${userId}`);
+                } else if (newStatus === 'rejected' || newStatus === 'pending') {
+                    // If rejecting or resetting either detail, set overall verification to false
+                     updateData['isVerified'] = false;
+                     console.log(`Setting isVerified to false for user ${userId}`);
+                }
+                // --- End Optional Overall Verification Update ---
+
+
+                await updateDoc(userDocRef, updateData);
+
+                console.log(`${detailType} status updated successfully for user ${userId}`);
+                showActionMessage(`${detailType.replace('Details','')} status updated to ${newStatus}.`, false);
+
+                // Refresh the row instantly
+                const updatedDocSnap = await getDoc(userDocRef); // Re-fetch updated data
+                 if (updatedDocSnap.exists() && actionCell && actionCell.parentNode) {
+                     const updatedUser = updatedDocSnap.data();
+                     const kycCell = actionCell.parentNode.cells[2];
+                     const bankCell = actionCell.parentNode.cells[3];
+
+                     // Update KYC Cell
+                     const newKycStatus = updatedUser.kycDetails?.status || 'missing';
+                     const kycValue = updatedUser.kycDetails?.panNumber || 'N/A';
+                     const idCardUrl = updatedUser.kycDetails?.idCardUrl;
+                     const kycDisplay = newKycStatus !== 'missing' ? `(${kycValue})` : '';
+                     const idLinkHtml = idCardUrl ? `<a href="${idCardUrl}" target="_blank" rel="noopener noreferrer" class="view-id-link">(View ID)</a>` : '(No ID)';
+                     kycCell.innerHTML = `<span class="status-${newKycStatus}">${newKycStatus}</span> ${kycDisplay} ${idLinkHtml}`;
+
+                     // Update Bank Cell
+                     const newBankStatus = updatedUser.bankDetails?.status || 'missing';
+                     const bankValue = updatedUser.bankDetails?.accountNumber ? `${updatedUser.bankDetails.accountNumber} / ${updatedUser.bankDetails.ifsc || 'N/A'}` : 'N/A';
+                     const bankDisplay = newBankStatus !== 'missing' ? `(${bankValue})` : '';
+                     bankCell.innerHTML = `<span class="status-${newBankStatus}">${newBankStatus}</span> ${bankDisplay}`;
+
+                     renderActionButtons(actionCell, userId, newKycStatus, newBankStatus); // Re-render buttons
+                 } else {
+                     fetchAndDisplayUsers(); // Fallback to full refresh
+                 }
+
+            } catch (error) {
+                console.error(`Error updating ${detailType} status for user ${userId}:`, error);
+                showActionMessage(`Failed to update ${detailType} status.`, true);
+                 buttons.forEach(btn => btn.disabled = false); // Re-enable buttons on error
+            }
+        }
+
+        // --- Logout Handler ---
+        async function handleLogout() {
+             if (!auth) return;
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
+        }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>
