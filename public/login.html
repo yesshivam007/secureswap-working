@@ -13,7 +13,7 @@
 <body class="bg-neutral-lightest">
 
     <header class="bg-white shadow-sm">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
             <div> <a href="/" class="text-neutral hover:text-primary">&larr; Back to Home</a> </div>
         </nav>
@@ -68,7 +68,7 @@
     </main>
 
     <footer class="bg-neutral-darkest text-neutral-light mt-16">
-        <div class="container mx-auto px-6 py-8 text-center text-neutral">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral">
              &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
              <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
              <a href="terms.html" class="hover:text-white">Terms of Service</a>
@@ -76,21 +76,116 @@
     </footer>
 
     <script type="module">
-        // ... (Firebase init and login logic remains the same) ...
+        // Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { firebaseConfig } from './js/firebase-config.js';
 
+        // Initialize Firebase
         let app, auth;
-        try { app = initializeApp(firebaseConfig); auth = getAuth(app); } catch (error) { console.error(error); }
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            console.log("Login Page: Firebase Initialized");
+        } catch (error) {
+            console.error("Login Page: Firebase initialization failed:", error);
+             document.addEventListener('DOMContentLoaded', () => {
+                showAuthError(document.getElementById('login-error'), "Initialization Error.");
+             });
+        }
 
-        let loginForm, loginErrorDiv, loginButton;
-        document.addEventListener('DOMContentLoaded', () => { /* ... element assignments ... */ });
-        function showAuthError(element, message) { /* ... */ }
-        function setButtonDisabled(disabled) { /* ... */ }
-        function getFriendlyErrorMessage(error) { /* ... */ }
-        async function handleLogin(event) { /* ... */ }
+        // Get DOM elements after DOM is loaded
+        let loginForm, emailInput, passwordInput, loginErrorDiv, loginButton; // Added email/password inputs
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Login Page: DOM Content Loaded"); // LOG
+            loginForm = document.getElementById('login-form');
+            emailInput = document.getElementById('login-email'); // Assign email input
+            passwordInput = document.getElementById('login-password'); // Assign password input
+            loginErrorDiv = document.getElementById('login-error');
+            loginButton = document.getElementById('login-button');
+
+            // Set current year
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            // Add form submit listener
+            if (loginForm) {
+                console.log("Login Page: Adding submit listener to form."); // LOG
+                loginForm.addEventListener('submit', handleLogin);
+            } else {
+                 console.error("Login Page: Login form not found!");
+            }
+        });
+
+        // Helper: Show Error
+        function showAuthError(element, message) {
+            if (element) {
+                element.textContent = message;
+                element.classList.remove('hidden');
+            } else {
+                 console.error("Login Page: Error display element not found for message:", message);
+            }
+        }
+
+        // Helper: Disable Button
+        function setButtonDisabled(disabled) {
+            if (loginButton) loginButton.disabled = disabled;
+        }
+
+         // Helper: Friendly Error Messages
+         function getFriendlyErrorMessage(error) {
+            // ... (error mapping remains the same) ...
+            switch (error?.code) {
+                case 'auth/invalid-email': return 'Please enter a valid email address.';
+                case 'auth/user-disabled': return 'This account has been disabled.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential':
+                    return 'Incorrect email or password.';
+                case 'auth/operation-not-allowed': return 'Email/password sign-in is not enabled.';
+                default:
+                    console.error("Login Page: Unhandled Login Error:", error);
+                    return 'An unexpected error occurred. Please try again.';
+            }
+        }
+
+        // Login Handler (with added logging)
+        async function handleLogin(event) {
+            event.preventDefault(); // Prevent default form submission
+            console.log("Login Page: handleLogin triggered."); // LOG
+
+            // Ensure elements are assigned (might run before DOMContentLoaded if form submitted quickly)
+             if (!loginForm) loginForm = document.getElementById('login-form');
+             if (!emailInput) emailInput = document.getElementById('login-email');
+             if (!passwordInput) passwordInput = document.getElementById('login-password');
+             if (!loginErrorDiv) loginErrorDiv = document.getElementById('login-error');
+             if (!loginButton) loginButton = document.getElementById('login-button');
+
+            if (!auth || !loginErrorDiv || !emailInput || !passwordInput) {
+                 console.error("Login Page: Auth or form elements not ready for login.");
+                 showAuthError(loginErrorDiv || document.getElementById('login-error'), "Page error. Please refresh.");
+                 return;
+            }
+
+            loginErrorDiv.classList.add('hidden'); // Hide previous errors
+            setButtonDisabled(true); // Disable button
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            console.log(`Login Page: Attempting login for email: ${email}`); // LOG
+
+            try {
+                console.log("Login Page: Calling signInWithEmailAndPassword..."); // LOG
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("Login Page: Login successful:", userCredential.user.uid); // LOG
+                // Redirect to dashboard on successful login
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                console.error("Login Page: Login failed:", error); // LOG Full Error
+                showAuthError(loginErrorDiv, getFriendlyErrorMessage(error)); // Show friendly error
+                setButtonDisabled(false); // Re-enable button on error
+            }
+        }
     </script>
-     <script src="js/main.js"></script>
-</body>
+     <script src="js/main.js"></script> </body>
 </html>

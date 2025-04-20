@@ -17,3 +17,5 @@ firebase functions:config:set razorpay.key_secret="DpPC6K2NwMn17gXMcrWpyCio"
 firebase deploy --only functions --set-env-vars RAZORPAY_KEY_ID="rzp_test_4wLqwbdfzDaKE0",RAZORPAY_KEY_SECRET="DpPC6K2NwMn17gXMcrWpyCio"
 
 admin uid - m8Dmto1hnOYshQ2ptpKaLW0bTdH2
+
+sendgrid recovery code - HZSSA5MNZLJFZ96R5VQYKZ6K
