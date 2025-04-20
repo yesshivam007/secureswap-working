@@ -10,53 +10,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="images/favicon.png" type="image/png">
      <style>
-        /* Hide page content initially until auth check completes */
-        body[data-status="loading"] #create-deal-content {
+        /* Hide form container if verification is pending */
+        body[data-status="loading"] #create-deal-form-container,
+        body[data-status="error"] #create-deal-form-container,
+        body[data-status="unauthorized"] #create-deal-form-container,
+        body[data-status="verification_pending"] #create-deal-form-container {
             display: none;
         }
-        /* Optional: Add a simple loading indicator */
-         body[data-status="loading"]::before {
-            content: 'Loading...';
-            display: block;
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2em;
-            color: #6B7280; /* neutral */
+         /* Loading indicator */
+        body[data-status="loading"]::before {
+            content: 'Loading...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;
          }
-    </style>
+         /* Verification message styling */
+        #verification-message { display: none; }
+        body[data-status="verification_pending"] #verification-message { display: block; }
+         /* Error message styling */
+         #error-message { display: none; }
+         body[data-status="error"] #error-message,
+         body[data-status="unauthorized"] #error-message { display: block; }
+     </style>
 </head>
-<body class="bg-neutral-lightest" data-status="loading">
+<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <div>
-                <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a>
-            </div>
-            <div class="flex items-center space-x-4">
-                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm"> &larr; Back to Dashboard</a>
-                 <span id="user-email" class="text-neutral text-sm hidden"></span>
-                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden">
-                    Logout
-                </button>
-            </div>
-        </nav>
+         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+             <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+             <div class="flex items-center space-x-4">
+                  <a href="dashboard.html" class="text-neutral hover:text-primary text-sm"> &larr; Back to Dashboard</a>
+                  <span id="user-email" class="text-neutral text-sm hidden"></span>
+                 <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
+                  <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login</a>
+             </div>
+         </nav>
     </header>
 
-    <main id="create-deal-content" class="container mx-auto px-6 py-8">
-        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Create a New Secure Deal</h1>
+    <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium hidden"></div>
+    <div id="verification-message" class="container mx-auto px-6 py-8 text-center">
+        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg shadow max-w-2xl mx-auto text-yellow-800 font-medium">
+             Your account verification (KYC & Bank Details) must be completed and approved before you can create new deals. Please check your <a href="profile.html" class="underline hover:text-yellow-900">Profile Page</a> for status.
+        </div>
+    </div>
 
+
+    <main id="create-deal-form-container" class="container mx-auto px-6 py-8 flex-grow"> <h1 class="text-3xl font-bold text-neutral-darkest mb-6 text-center md:text-left">Create a New Secure Deal</h1>
         <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-2xl mx-auto">
             <form id="create-deal-form" class="space-y-6">
-
                 <div>
                     <label for="other-party-email" class="block text-sm font-medium text-neutral-dark">Other Party's Email Address</label>
-                    <input type="email" id="other-party-email" name="other_party_email" required autocomplete="email"
-                           placeholder="Enter the email of the person you're dealing with"
-                           class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                    <input type="email" id="other-party-email" name="other_party_email" required autocomplete="email" placeholder="Enter the email of the person you're dealing with" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
                     <p class="mt-1 text-xs text-neutral">They will receive an email to review and confirm the deal.</p>
                 </div>
-
-                 <div>
+                <div>
                     <label for="my-role" class="block text-sm font-medium text-neutral-dark">Your Role in this Deal</label>
                     <select id="my-role" name="my_role" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-neutral-light focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
                         <option value="" disabled selected>-- Select your role --</option>
@@ -67,42 +71,31 @@
                  </div>
                  <div>
                     <label for="deal-description" class="block text-sm font-medium text-neutral-dark">Deal Description</label>
-                    <textarea id="deal-description" name="deal_description" rows="4" required
-                              placeholder="Briefly describe the item or service being exchanged (e.g., 'Graphic design logo', 'Used iPhone 13 Pro', 'Consulting session')"
-                              class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"></textarea>
+                    <textarea id="deal-description" name="deal_description" rows="4" required placeholder="Briefly describe the item or service being exchanged (e.g., 'Graphic design logo', 'Used iPhone 13 Pro', 'Consulting session')" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"></textarea>
                 </div>
-
-                 <div>
+                <div>
                     <label for="deal-amount" class="block text-sm font-medium text-neutral-dark">Deal Amount (INR)</label>
                     <div class="mt-1 relative rounded-md shadow-sm">
-                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                             <span class="text-neutral sm:text-sm">₹</span>
-                         </div>
-                         <input type="number" id="deal-amount" name="deal_amount" required min="1" step="0.01"
-                                placeholder="0.00"
-                                class="block w-full pl-7 pr-12 py-2 border border-neutral-light rounded-md placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
-                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span class="text-neutral sm:text-sm" id="currency-code">INR</span>
-                        </div>
+                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"> <span class="text-neutral sm:text-sm">₹</span> </div>
+                         <input type="number" id="deal-amount" name="deal_amount" required min="1" step="0.01" placeholder="0.00" class="block w-full pl-7 pr-12 py-2 border border-neutral-light rounded-md placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"> <span class="text-neutral sm:text-sm" id="currency-code">INR</span> </div>
                     </div>
                      <p class="mt-1 text-xs text-neutral">This is the amount the buyer will pay into escrow.</p>
                 </div>
 
                  <div id="form-message" class="text-sm hidden mt-2 text-center p-3 rounded-md"></div>
 
-                <div>
+                 <div>
                     <button type="submit" id="submit-deal-button"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 disabled:opacity-50">
-                        Create Deal & Notify Other Party
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled> Create Deal & Notify Other Party
                     </button>
                 </div>
-
             </form>
         </div>
     </main>
 
-    <footer class="bg-neutral-darkest text-neutral-light mt-16">
-        <div class="container mx-auto px-6 py-8 text-center text-neutral">
+    <footer class="bg-neutral-darkest text-neutral-light"> <div class="container mx-auto px-6 py-8 text-center text-neutral">
              &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
              <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
              <a href="terms.html" class="hover:text-white">Terms of Service</a>
@@ -110,34 +103,32 @@
     </footer>
 
     <script type="module">
-        // Import Firebase modules
+        // Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        // Import your config
-        import { firebaseConfig } from './js/firebase-config.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig } from './js/firebase-config.js'; // Needs YOUR config values
 
         // Initialize Firebase
-        let app, auth, db, currentUser = null;
+        let app, auth, db, currentUser = null, isVerified = false;
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
             console.log("Firebase Initialized for Create Deal");
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            document.body.dataset.status = 'error';
-            document.body.innerHTML = '<p class="text-center text-red-600 p-10">Error loading application services. Please try refreshing.</p>';
-        }
+        } catch (error) { console.error("Firebase initialization failed:", error); setPageStatus('error', "Error loading services."); }
 
-        // --- DOM Elements ---
-        let createDealForm, formMessageDiv, submitDealButton, userEmailSpan, logoutButton;
+        // DOM Elements
+        let createDealForm, formMessageDiv, submitDealButton, userEmailSpan, logoutButton, loginLink, verificationMessageDiv;
+
         document.addEventListener('DOMContentLoaded', () => {
             createDealForm = document.getElementById('create-deal-form');
             formMessageDiv = document.getElementById('form-message');
             submitDealButton = document.getElementById('submit-deal-button');
             userEmailSpan = document.getElementById('user-email');
             logoutButton = document.getElementById('logout-button');
+            loginLink = document.getElementById('login-link');
+            verificationMessageDiv = document.getElementById('verification-message');
 
             const currentYearElement = document.getElementById('current-year');
             if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
@@ -146,73 +137,103 @@
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
         });
 
-         // --- Helper: Show Form Message ---
+         // Helper: Show Form Message
          function showFormMessage(message, isError = false) {
             if (formMessageDiv) {
-                // Use innerHTML to allow simple HTML like line breaks if needed later
-                formMessageDiv.innerHTML = message; // Changed from textContent
+                formMessageDiv.innerHTML = message; // Use innerHTML for line breaks
                 formMessageDiv.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
                 formMessageDiv.classList.add(isError ? 'bg-red-50' : 'bg-green-50', isError ? 'text-red-700' : 'text-green-700');
+                setTimeout(() => { formMessageDiv.classList.add('hidden') }, 5000); // Show for 5 secs
+            }
+         }
+         // Helper: Update Button State based on verification
+        function updateButtonState() {
+            if (submitDealButton) {
+                submitDealButton.disabled = !isVerified;
+                submitDealButton.title = isVerified ? 'Create the deal' : 'Account must be verified first';
             }
         }
-
-         // --- Helper: Disable Button ---
-        function setButtonDisabled(disabled) {
-            if (submitDealButton) submitDealButton.disabled = disabled;
+         // Helper: Set Page Status
+        function setPageStatus(status, message = '') {
+             requestAnimationFrame(() => {
+                document.body.dataset.status = status;
+                const errorDiv = document.getElementById('error-message');
+                if(errorDiv && message) errorDiv.textContent = message;
+                if(errorDiv) errorDiv.style.display = (status === 'unauthorized' || status === 'error') ? 'block' : 'none';
+                if(verificationMessageDiv) verificationMessageDiv.style.display = (status === 'verification_pending') ? 'block' : 'none';
+                // Show main content only if loaded and verified
+                const contentEl = document.getElementById('create-deal-form-container');
+                if(contentEl) contentEl.style.display = (status === 'loaded') ? 'block' : 'none';
+             });
         }
 
-        // --- Auth State Listener (Guard) ---
-        onAuthStateChanged(auth, (user) => {
+        // Auth State Listener
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = { uid: user.uid, email: user.email };
-                console.log("User is logged in:", currentUser.uid);
-                if(userEmailSpan) {
-                    userEmailSpan.textContent = currentUser.email;
-                    userEmailSpan.classList.remove('hidden');
-                }
+                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
                 if(logoutButton) logoutButton.classList.remove('hidden');
-                document.body.dataset.status = 'loaded';
+                if(loginLink) loginLink.classList.add('hidden');
+                await checkUserVerification(user.uid); // Check verification status
+                updateButtonState(); // Update button based on verification
             } else {
-                console.log("User is signed out. Redirecting to login.");
-                window.location.href = 'login.html';
+                currentUser = null; isVerified = false;
+                window.location.href = 'login.html'; // Redirect if not logged in
             }
         });
 
-        // --- Create Deal Handler ---
+        // Check User Verification Status
+        async function checkUserVerification(uid) {
+            if (!db) { console.error("Firestore not initialized"); return; }
+            setPageStatus('loading');
+            try {
+                const userDocRef = doc(db, "users", uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    if (userData.kycDetails?.status === 'verified' && userData.bankDetails?.status === 'verified') {
+                        console.log("User is verified.");
+                        isVerified = true;
+                        setPageStatus('loaded'); // Show form
+                    } else {
+                        console.log("User verification pending/rejected.");
+                        isVerified = false;
+                        setPageStatus('verification_pending'); // Show verification message
+                    }
+                } else {
+                    console.error("User document not found for verification check.");
+                    isVerified = false;
+                    setPageStatus('error', "Could not verify account status.");
+                }
+            } catch (error) {
+                console.error("Error checking user verification:", error);
+                isVerified = false;
+                setPageStatus('error', "Error checking verification status.");
+            }
+        }
+
+        // Create Deal Handler
         async function handleCreateDeal(event) {
             event.preventDefault();
-            if (!currentUser || !db || !formMessageDiv) {
-                 console.error("User not logged in or DB not ready.");
-                 showFormMessage("Error: Not logged in or connection issue.", true);
+            if (!currentUser || !db || !formMessageDiv || !isVerified) {
+                 showFormMessage("Your account must be verified to create deals.", true);
+                 console.error("Deal creation blocked: User not verified or other prerequisites failed.");
                  return;
             }
-
             formMessageDiv.classList.add('hidden');
-            setButtonDisabled(true);
+            if(submitDealButton) submitDealButton.disabled = true; // Disable during processing
 
             const otherPartyEmail = createDealForm.other_party_email.value.trim();
             const creatorRole = createDealForm.my_role.value;
             const description = createDealForm.deal_description.value.trim();
             const amountInput = createDealForm.deal_amount.value;
 
-            // Validation... (same as before)
-             if (!otherPartyEmail || !creatorRole || !description || !amountInput) {
-                showFormMessage("Please fill in all fields, including your role.", true);
-                setButtonDisabled(false); return;
-            }
+            // Validation
+            if (!otherPartyEmail || !creatorRole || !description || !amountInput) { showFormMessage("Please fill in all fields.", true); updateButtonState(); return; }
             const amount = parseFloat(amountInput);
-            if (isNaN(amount) || amount <= 0) {
-                 showFormMessage("Please enter a valid positive amount.", true);
-                 setButtonDisabled(false); return;
-            }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(otherPartyEmail)) {
-                showFormMessage("Please enter a valid email address for the other party.", true);
-                setButtonDisabled(false); return;
-            }
-             if (otherPartyEmail.toLowerCase() === currentUser.email.toLowerCase()) {
-                showFormMessage("You cannot create a deal with yourself.", true);
-                setButtonDisabled(false); return;
-            }
+            if (isNaN(amount) || amount <= 0) { showFormMessage("Please enter a valid positive amount.", true); updateButtonState(); return; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(otherPartyEmail)) { showFormMessage("Invalid email for other party.", true); updateButtonState(); return; }
+            if (otherPartyEmail.toLowerCase() === currentUser.email.toLowerCase()) { showFormMessage("Cannot create deal with yourself.", true); updateButtonState(); return; }
 
             const newDeal = {
                 creatorUid: currentUser.uid,
@@ -226,33 +247,26 @@
                 createdAt: serverTimestamp(),
                 buyerUid: null,
                 sellerUid: null,
+                buyerEmail: null, // Will be set on confirmation
+                sellerEmail: null // Will be set on confirmation
             };
 
             try {
                 const docRef = await addDoc(collection(db, "deals"), newDeal);
-                console.log("Deal created with ID: ", docRef.id);
-                // **UPDATED SUCCESS MESSAGE**
-                showFormMessage(`Deal created successfully! Deal ID: ${docRef.id}<br>Please share this ID and the confirmation link with ${otherPartyEmail}. (Email notification pending implementation).`, false);
+                showFormMessage(`Deal created successfully! Deal ID: ${docRef.id}<br>Waiting for other party to confirm.`, false);
                 createDealForm.reset();
-
             } catch (error) {
                 console.error("Error adding document: ", error);
                 showFormMessage("Failed to create deal. Please try again.", true);
             } finally {
-                setButtonDisabled(false);
+                 updateButtonState(); // Re-enable button based on verification status
             }
         }
 
-         // --- Logout Handler ---
+         // Logout Handler
         async function handleLogout() {
-            // ... (logout logic remains the same) ...
              if (!auth) return;
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Sign out failed:", error);
-                alert("Failed to sign out. Please try again.");
-            }
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
         }
 
     </script>
