@@ -25,60 +25,78 @@
         .status-pending_confirmation { background-color: #E0E7FF; color: #3730A3; }
     </style>
 </head>
-<body class="bg-neutral-lightest" data-status="loading">
-
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
-            <div class="flex items-center space-x-4">
-                <span id="user-greeting" class="text-neutral hidden"></span>
-                <button id="logout-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#e81700" class="size-4" height="30" width ="30">
-                        <path fill-rule="evenodd" d="M2 4.75A2.75 2.75 0 0 1 4.75 2h3a2.75 2.75 0 0 1 2.75 2.75v.5a.75.75 0 0 1-1.5 0v-.5c0-.69-.56-1.25-1.25-1.25h-3c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h3c.69 0 1.25-.56 1.25-1.25v-.5a.75.75 0 0 1 1.5 0v.5A2.75 2.75 0 0 1 7.75 14h-3A2.75 2.75 0 0 1 2 11.25v-6.5Zm9.47.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 1 1-1.06-1.06l.97-.97H5.25a.75.75 0 0 1 0-1.5h7.19l-.97-.97a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                      </svg>
-                </button>
-            </div>
+<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading"> <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div class="flex items-center space-x-3 sm:space-x-4 md:space-x-6">
+                 <div id="auth-links" class="hidden md:flex items-center space-x-4 md:space-x-6">
+                      <a href="login.html" class="text-sm sm:text-base text-neutral hover:text-primary transition duration-200">Login</a>
+                      <a href="signup.html" class="bg-primary text-white px-3 sm:px-4 py-2 rounded-md hover:bg-primary-dark transition duration-300 text-xs sm:text-sm">Sign Up</a>
+                  </div>
+                  <div id="user-info-header" class="hidden items-center space-x-4 sm:space-x-3">
+                      <a href="profile.html" class="flex items-center text-neutral hover:text-primary transition duration-200 flex-shrink-0" title="View Profile"> <svg class="w-5 h-5 mr-1 inline-block text-neutral-dark flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                          <span id="user-name-header" class="text-xs sm:text-sm font-medium text-neutral-dark truncate max-w-[100px] sm:max-w-[150px]">[User]</span>
+                      </a>
+                      <button id="logout-button-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#e81700" class="size-4" height="30" width ="30">
+                            <path fill-rule="evenodd" d="M2 4.75A2.75 2.75 0 0 1 4.75 2h3a2.75 2.75 0 0 1 2.75 2.75v.5a.75.75 0 0 1-1.5 0v-.5c0-.69-.56-1.25-1.25-1.25h-3c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h3c.69 0 1.25-.56 1.25-1.25v-.5a.75.75 0 0 1 1.5 0v.5A2.75 2.75 0 0 1 7.75 14h-3A2.75 2.75 0 0 1 2 11.25v-6.5Zm9.47.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 1 1-1.06-1.06l.97-.97H5.25a.75.75 0 0 1 0-1.5h7.19l-.97-.97a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                          </svg>
+                    </button>
+                  </div>
+                  <div class="md:hidden">
+                     <button id="mobile-menu-button" class="text-neutral-dark focus:outline-none"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg> </button>
+                  </div>
+             </div>
         </nav>
+         <div id="mobile-menu" class="hidden md:hidden bg-white py-2 absolute top-full left-0 right-0 shadow-lg border-t border-gray-200 z-40"> <a href="#process" class="block px-6 py-3 text-neutral hover:bg-neutral-light transition duration-200">How it Works</a>
+             <a href="#why-us" class="block px-6 py-3 text-neutral hover:bg-neutral-light transition duration-200">Why SecureSwap</a>
+             <a href="#faq" class="block px-6 py-3 text-neutral hover:bg-neutral-light transition duration-200">FAQ</a>
+             <div id="mobile-auth-links" class="border-t border-gray-100 pt-2 mt-2">
+                 <a href="login.html" class="block px-6 py-3 text-neutral hover:bg-neutral-light transition duration-200">Login</a>
+                 <a href="signup.html" class="block px-6 py-3 text-primary hover:bg-neutral-light transition duration-200">Sign Up</a>
+             </div>
+             <div id="mobile-user-info" class="hidden border-t border-gray-100 pt-2 mt-2">
+                 <a href="profile.html" class="block px-6 py-3 text-neutral hover:bg-neutral-light transition duration-200"> <span id="mobile-user-name">[User]</span> Profile </a>
+                 <button id="mobile-logout-button" class="block w-full text-left px-6 py-3 text-red-600 hover:bg-red-50 transition duration-200">Logout</button>
+             </div>
+        </div>
     </header>
 
-    <main id="dashboard-content" class="container mx-auto px-6 py-8">
-        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Your Dashboard</h1>
+    <main id="dashboard-content" class="container mx-auto px-4 sm:px-6 py-8 flex-grow">
+        <h1 class="text-2xl sm:text-3xl font-bold text-neutral-darkest mb-6">Your Dashboard</h1>
 
-        <div id="pending-confirmations-section" class="mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg shadow hidden">
-             <h2 class="text-xl font-semibold text-yellow-800 mb-4">Action Required: Confirm Deals</h2>
+        <div id="pending-confirmations-section" class="mb-6 md:mb-8 p-4 sm:p-6 bg-yellow-50 border border-yellow-200 rounded-lg shadow hidden">
+             <h2 class="text-lg sm:text-xl font-semibold text-yellow-800 mb-4">Action Required: Confirm Deals</h2>
             <div id="pending-confirmations-list" class="space-y-3">
-                <p id="no-pending-deals" class="text-neutral">No deals currently waiting for your confirmation.</p>
+                <p id="no-pending-deals" class="text-sm sm:text-base text-neutral">No deals currently waiting for your confirmation.</p>
             </div>
         </div>
 
-         <div class="mb-8 p-6 bg-white rounded-lg shadow">
-             <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Quick Actions</h2>
-            <div class="flex space-x-4">
-                 <a href="create-deal.html" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition duration-300"> Create New Deal </a>
+         <div class="mb-6 md:mb-8 p-4 sm:p-6 bg-white rounded-lg shadow">
+             <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Quick Actions</h2>
+            <div class="flex space-x-6">
+                 <a href="create-deal.html" class="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-dark transition duration-300 text-sm sm:text-base"> Create New Deal </a>
             </div>
         </div>
 
-        <div id="active-deals-section" class="mb-8 p-6 bg-white rounded-lg shadow">
-             <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Your Active Deals (In Progress)</h2>
+        <div id="active-deals-section" class="mb-6 md:mb-8 p-4 sm:p-6 bg-white rounded-lg shadow">
+             <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Your Active Deals (In Progress)</h2>
             <div id="active-deals-list" class="space-y-4">
-                 <p id="no-active-deals" class="text-neutral">You have no active deals currently.</p>
+                 <p id="no-active-deals" class="text-sm sm:text-base text-neutral">You have no active deals currently.</p>
             </div>
         </div>
 
-        <div class="p-6 bg-white rounded-lg shadow">
-            <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Recent History</h2>
-             <p id="no-recent-history" class="text-neutral">No completed or rejected transactions yet.</p>
-             <div id="recent-history-list" class="space-y-3">
-                 </div>
-             <div class="mt-4">
-                <a href="history.html" class="text-primary hover:underline">View Full History</a>
-             </div>
+        <div class="p-4 sm:p-6 bg-white rounded-lg shadow">
+            <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Recent History</h2>
+             <p id="no-recent-history" class="text-sm sm:text-base text-neutral">No completed or rejected transactions yet.</p>
+             <div id="recent-history-list" class="space-y-3"></div>
+             <div class="mt-4"> <a href="history.html" class="text-primary hover:underline text-sm sm:text-base">View Full History</a> </div>
         </div>
 
     </main>
 
-    <footer class="bg-neutral-darkest text-neutral-light mt-16">
-         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+    <footer class="bg-neutral-darkest text-neutral-light">
+         <div class="container mx-auto px-4 sm:px-6 py-8 text-center text-neutral text-sm">
              &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
              <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
              <a href="terms.html" class="hover:text-white">Terms of Service</a>
@@ -89,7 +107,7 @@
         // Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added Timestamp
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { firebaseConfig } from './js/firebase-config.js';
 
         // Initialize Firebase
@@ -102,148 +120,133 @@
         } catch (error) { console.error("Firebase initialization failed:", error); document.body.innerHTML = '<p class="text-center text-red-600 p-10">Error loading application services.</p>'; }
 
         // --- DOM Elements ---
-        let logoutButton, userGreeting, dashboardContent,
+        let logoutButtonHeader, userGreeting, dashboardContent,
+            authLinks, userInfoHeader, userNameHeader, // Header elements
             pendingConfirmationsSection, pendingConfirmationsList, noPendingDealsMessage,
             activeDealsSection, activeDealsList, noActiveDealsMessage,
-            recentHistoryList, noRecentHistoryMessage; // Declare all variables
+            recentHistoryList, noRecentHistoryMessage,
+            mobileAuthLinks, mobileUserInfo, mobileUserName, mobileLogoutButton, // Mobile header elements
+            menuButton, mobileMenu; // Mobile menu toggle elements
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Assign all elements carefully
-            logoutButton = document.getElementById('logout-button');
-            userGreeting = document.getElementById('user-greeting');
+            console.log("Dashboard DOM Loaded. Assigning elements...");
+            // Assign Header Elements
+            authLinks = document.getElementById('auth-links');
+            userInfoHeader = document.getElementById('user-info-header');
+            userNameHeader = document.getElementById('user-name-header');
+            logoutButtonHeader = document.getElementById('logout-button-header');
+            // Assign Mobile Header Elements
+            mobileAuthLinks = document.getElementById('mobile-auth-links');
+            mobileUserInfo = document.getElementById('mobile-user-info');
+            mobileUserName = document.getElementById('mobile-user-name');
+            mobileLogoutButton = document.getElementById('mobile-logout-button');
+             // Assign Mobile Menu Toggle Elements
+            menuButton = document.getElementById('mobile-menu-button');
+            mobileMenu = document.getElementById('mobile-menu');
+            // Assign Dashboard Elements
+            userGreeting = document.getElementById('user-greeting'); // Keep or remove?
             dashboardContent = document.getElementById('dashboard-content');
-            // Pending confirmations
             pendingConfirmationsSection = document.getElementById('pending-confirmations-section');
             pendingConfirmationsList = document.getElementById('pending-confirmations-list');
             noPendingDealsMessage = document.getElementById('no-pending-deals');
-            // Active Deals
             activeDealsSection = document.getElementById('active-deals-section');
             activeDealsList = document.getElementById('active-deals-list');
             noActiveDealsMessage = document.getElementById('no-active-deals');
-            // Recent History --- **FIXED: Added assignments** ---
             recentHistoryList = document.getElementById('recent-history-list');
             noRecentHistoryMessage = document.getElementById('no-recent-history');
-            // --- End Fix ---
 
             const currentYearElement = document.getElementById('current-year');
             if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
-            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+
+            // Mobile Menu Toggle Listener
+            if(menuButton && mobileMenu) { menuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden')); }
+            else { console.warn("Mobile menu toggle elements not found"); }
+
+            console.log("Dashboard element assignments complete.");
+
+            // Initial Auth State Check
+            if (auth) { onAuthStateChanged(auth, authStateHandler); }
+            else { authStateHandler(null); document.body.dataset.status = 'error'; }
         });
 
-        // --- Auth State Listener ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = { uid: user.uid, email: user.email };
-                console.log("User is logged in:", user.uid);
-                if (logoutButton) logoutButton.classList.remove('hidden');
-
-                // Fetch all data concurrently
-                // Ensure all elements are assigned before calling fetch functions
-                if (document.readyState === 'loading') {
-                     // Wait for DOMContentLoaded if auth resolves very quickly
-                     await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
-                }
-                await Promise.all([
-                    fetchAndDisplayUserData(user.uid),
-                    fetchPendingConfirmations(user.email),
-                    fetchActiveDeals(user.uid),
-                    fetchRecentHistory(user.uid) // Now safe to call
-                ]);
-
-                document.body.dataset.status = 'loaded';
-            } else {
-                currentUser = null;
-                console.log("User is signed out. Redirecting to login.");
-                window.location.href = 'login.html';
-            }
-        });
-
-        // --- Fetch User Data (Name) ---
-        async function fetchAndDisplayUserData(uid) {
-             if (!db || !userGreeting || !currentUser) return; // Added currentUser check
-             try {
-                const userDocRef = doc(db, "users", uid);
-                const userDocSnap = await getDoc(userDocRef);
-                userGreeting.textContent = userDocSnap.exists() ? `Hi, ${userDocSnap.data().name || currentUser.email}!` : `Hi, ${currentUser.email}!`;
-                userGreeting.classList.remove('hidden');
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-                userGreeting.textContent = `Hi, ${currentUser.email}! (Error)`; // Show fallback on error
-                userGreeting.classList.remove('hidden');
-            }
+        // --- Helper Function to Fetch User Name ---
+        async function fetchUserName(uid) {
+            if (!db) return null; try { const snap = await getDoc(doc(db, "users", uid)); return snap.exists() ? (snap.data().name || null) : null; } catch (e) { console.error("Error fetching user name:", e); return null; }
         }
+        // --- Helper Function for Logout ---
+        async function handleLogout() {
+            console.log("Logout clicked"); if (!auth) return; try { await signOut(auth); } catch (e) { console.error("Sign out failed:", e); alert("Failed to sign out."); }
+        }
+
+         // --- Auth State Handler (Controls Header and Fetches Data) ---
+         const authStateHandler = async (user) => {
+             // Ensure header elements are available
+             if (!authLinks || !userInfoHeader || !userNameHeader || !logoutButtonHeader || !mobileAuthLinks || !mobileUserInfo || !mobileUserName || !mobileLogoutButton) {
+                  console.warn("Header elements not ready yet in authStateHandler, likely due to early auth check before DOMContentLoaded fully finished assignment. Retrying assignment...");
+                  // Re-assign just in case
+                  authLinks = document.getElementById('auth-links'); userInfoHeader = document.getElementById('user-info-header'); userNameHeader = document.getElementById('user-name-header'); logoutButtonHeader = document.getElementById('logout-button-header'); mobileAuthLinks = document.getElementById('mobile-auth-links'); mobileUserInfo = document.getElementById('mobile-user-info'); mobileUserName = document.getElementById('mobile-user-name'); mobileLogoutButton = document.getElementById('mobile-logout-button');
+                  if (!authLinks || !userInfoHeader || !userNameHeader || !logoutButtonHeader || !mobileAuthLinks || !mobileUserInfo || !mobileUserName || !mobileLogoutButton) { console.error("Header elements critical error! Cannot update UI."); return; }
+             }
+
+             if (user) { // User is Logged IN
+                 currentUser = { uid: user.uid, email: user.email };
+                 console.log("User logged in, updating header & fetching data:", user.uid);
+                 const userName = await fetchUserName(user.uid);
+                 // Update Desktop Header
+                 userNameHeader.textContent = userName || user.email; authLinks.style.display = 'none'; userInfoHeader.style.display = 'flex';
+                 logoutButtonHeader.removeEventListener('click', handleLogout); logoutButtonHeader.addEventListener('click', handleLogout);
+                 // Update Mobile Header
+                 mobileUserName.textContent = userName || user.email; mobileAuthLinks.style.display = 'none'; mobileUserInfo.style.display = 'block';
+                 mobileLogoutButton.removeEventListener('click', handleLogout); mobileLogoutButton.addEventListener('click', handleLogout);
+
+                 // Fetch Dashboard Data
+                 console.log("Fetching dashboard data..."); document.body.dataset.status = 'loading'; // Show loading for dashboard data part
+                 await Promise.all([ fetchPendingConfirmations(user.email), fetchActiveDeals(user.uid), fetchRecentHistory(user.uid) ])
+                     .catch(err => { console.error("Error during dashboard data fetch:", err); });
+                 document.body.dataset.status = 'loaded'; console.log("Dashboard data fetching complete.");
+
+             } else { // User is Logged OUT
+                 currentUser = null; console.log("User signed out, updating header and redirecting.");
+                 // Update Headers
+                 if(authLinks) authLinks.style.display = 'flex'; if(userInfoHeader) userInfoHeader.style.display = 'none';
+                 if(mobileAuthLinks) mobileAuthLinks.style.display = 'block'; if(mobileUserInfo) mobileUserInfo.style.display = 'none';
+                 // Redirect
+                 window.location.href = 'login.html';
+             }
+         };
 
         // --- Fetch Deals Pending YOUR Confirmation ---
         async function fetchPendingConfirmations(userEmail) {
-             if (!db || !pendingConfirmationsList || !pendingConfirmationsSection || !noPendingDealsMessage) {
-                 console.error("Missing elements for pending confirmations display."); return;
-             }
-            pendingConfirmationsList.innerHTML = ''; // Clear previous items
-            pendingConfirmationsList.appendChild(noPendingDealsMessage); // Add back default message
-            noPendingDealsMessage.style.display = 'block'; // Show initially
-            pendingConfirmationsSection.classList.add('hidden'); // Hide section initially
-
-            const dealsRef = collection(db, "deals");
-            const q = query(dealsRef, where("otherPartyEmail", "==", userEmail), where("status", "==", "pending_confirmation"));
-            try {
-                const querySnapshot = await getDocs(q);
-                let hasPendingDeals = false;
-                querySnapshot.forEach((docSnap) => {
-                    hasPendingDeals = true;
-                    const deal = docSnap.data(); const dealId = docSnap.id;
-                    const listItem = document.createElement('div');
-                    listItem.className = 'pending-item p-4 border border-yellow-300 bg-white rounded-md flex justify-between items-center gap-4';
-                    const infoDiv = document.createElement('div');
-                    infoDiv.innerHTML = `
-                        <p class="text-sm text-neutral-dark">From: <span class="font-medium">${deal.creatorEmail}</span></p>
-                        <p class="text-sm text-neutral line-clamp-1" title="${deal.description}">Desc: ${deal.description}</p>
-                        <p class="text-sm text-neutral">Amount: <span class="font-semibold">₹${deal.amount.toFixed(2)}</span></p>
-                    `; // Added line-clamp
-                    const actionButton = document.createElement('a');
-                    actionButton.href = `deal-confirmation.html?dealId=${dealId}`;
-                    actionButton.className = 'bg-yellow-500 text-white px-4 py-1 rounded text-sm hover:bg-yellow-600 transition duration-200 whitespace-nowrap flex-shrink-0';
-                    actionButton.textContent = 'View & Confirm';
-                    listItem.appendChild(infoDiv); listItem.appendChild(actionButton);
-                    pendingConfirmationsList.appendChild(listItem);
-                });
-
-                if (hasPendingDeals) {
-                    noPendingDealsMessage.style.display = 'none';
-                    pendingConfirmationsSection.classList.remove('hidden');
-                } else {
-                     noPendingDealsMessage.style.display = 'block';
-                     pendingConfirmationsSection.classList.add('hidden');
-                }
-            } catch (error) {
-                console.error("Error fetching pending deals: ", error);
-                noPendingDealsMessage.textContent = "Error loading pending deals.";
-                noPendingDealsMessage.style.display = 'block';
-                pendingConfirmationsSection.classList.remove('hidden');
-            }
+             if (!db || !pendingConfirmationsList || !pendingConfirmationsSection || !noPendingDealsMessage) { console.error("Missing elements for pending confirmations display."); return; }
+             pendingConfirmationsList.innerHTML = ''; pendingConfirmationsList.appendChild(noPendingDealsMessage); noPendingDealsMessage.style.display = 'block'; pendingConfirmationsSection.classList.add('hidden');
+             const dealsRef = collection(db, "deals"); const q = query(dealsRef, where("otherPartyEmail", "==", userEmail), where("status", "==", "pending_confirmation"));
+             try {
+                 const querySnapshot = await getDocs(q); let hasPendingDeals = false;
+                 querySnapshot.forEach((docSnap) => {
+                     hasPendingDeals = true; const deal = docSnap.data(); const dealId = docSnap.id;
+                     const listItem = document.createElement('div'); listItem.className = 'pending-item p-4 border border-yellow-300 bg-white rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4'; // Adjusted layout for mobile
+                     const infoDiv = document.createElement('div'); const baseAmount = deal.baseAmount ?? 0; // Use baseAmount
+                     infoDiv.innerHTML = `<p class="text-sm text-neutral-dark">From: <span class="font-medium">${deal.creatorEmail || 'N/A'}</span></p> <p class="text-sm text-neutral line-clamp-1" title="${deal.description || ''}">Desc: ${deal.description || 'N/A'}</p> <p class="text-sm text-neutral">Amount: <span class="font-semibold">₹${baseAmount.toFixed(2)}</span></p>`;
+                     const actionButton = document.createElement('a'); actionButton.href = `deal-confirmation.html?dealId=${dealId}`; actionButton.className = 'bg-yellow-500 text-white px-4 py-1.5 rounded text-sm hover:bg-yellow-600 transition duration-200 whitespace-nowrap flex-shrink-0 mt-2 sm:mt-0 self-start sm:self-center'; // Adjusted button style/margin
+                     actionButton.textContent = 'View & Confirm';
+                     listItem.appendChild(infoDiv); listItem.appendChild(actionButton); pendingConfirmationsList.appendChild(listItem);
+                 });
+                 if (hasPendingDeals) { noPendingDealsMessage.style.display = 'none'; pendingConfirmationsSection.classList.remove('hidden'); }
+                 else { noPendingDealsMessage.style.display = 'block'; pendingConfirmationsSection.classList.add('hidden'); }
+             } catch (error) { console.error("Error fetching pending deals: ", error); noPendingDealsMessage.textContent = "Error loading pending deals."; noPendingDealsMessage.style.display = 'block'; pendingConfirmationsSection.classList.remove('hidden'); }
         }
 
-        // --- Fetch Active Deals (In Progress, involving ME) ---
+        // --- Fetch Active Deals (In Progress, involving ME) --- (FIXED amount display)
         async function fetchActiveDeals(userUid) {
-            if (!db || !activeDealsList || !noActiveDealsMessage || !currentUser) {
-                console.error("Missing elements or user data for active deals display."); return;
-            }
-            activeDealsList.innerHTML = '';
-            activeDealsList.appendChild(noActiveDealsMessage);
-            noActiveDealsMessage.style.display = 'block';
-
-            const dealsRef = collection(db, "deals");
-            const activeStatuses = ['pending_payment', 'payment_received', 'item_shipped'];
+            if (!db || !activeDealsList || !noActiveDealsMessage || !currentUser) { console.error("Missing elements or user data for active deals display."); return; }
+            activeDealsList.innerHTML = ''; activeDealsList.appendChild(noActiveDealsMessage); noActiveDealsMessage.style.display = 'block';
+            const dealsRef = collection(db, "deals"); const activeStatuses = ['pending_payment', 'payment_received', 'item_shipped'];
             const createdPendingQuery = query(dealsRef, where("creatorUid", "==", userUid), where("status", "==", "pending_confirmation"));
             const buyerActiveQuery = query(dealsRef, where("buyerUid", "==", userUid), where("status", "in", activeStatuses));
             const sellerActiveQuery = query(dealsRef, where("sellerUid", "==", userUid), where("status", "in", activeStatuses));
-
             try {
-                console.log("Fetching active deals...");
                 const [createdSnapshot, buyerSnapshot, sellerSnapshot] = await Promise.all([ getDocs(createdPendingQuery), getDocs(buyerActiveQuery), getDocs(sellerActiveQuery) ]);
-                console.log(`Query results: CreatedPending=${createdSnapshot.size}, BuyerActive=${buyerSnapshot.size}, SellerActive=${sellerSnapshot.size}`);
-
-                let hasActiveDeals = false;
-                const dealsMap = new Map();
+                let hasActiveDeals = false; const dealsMap = new Map();
 
                 const processAndRenderDeal = (docSnap, forcedRole = null) => {
                      if (!dealsMap.has(docSnap.id)) {
@@ -255,25 +258,25 @@
 
                         dealsMap.set(dealId, { id: dealId, data: deal, userRole: userRole }); hasActiveDeals = true;
                         const otherPartyEmail = (deal.creatorUid === userUid && deal.status === 'pending_confirmation') ? deal.otherPartyEmail : (userRole === 'Buyer') ? deal.sellerEmail : deal.buyerEmail;
-                        const listItem = document.createElement('div');
-                        listItem.className = 'active-item p-4 border border-gray-200 bg-white rounded-md flex justify-between items-center gap-4';
+                        const listItem = document.createElement('div'); listItem.className = 'active-item p-4 border border-gray-200 bg-white rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4'; // Adjusted layout
                         const infoDiv = document.createElement('div');
                         let statusText = deal.status.replace(/_/g, ' '); let statusClass = `status-${deal.status}`;
-                        // More descriptive status based on role and state
+                        // More descriptive status
                         if (deal.status === 'pending_confirmation') { statusText = "Waiting for other party"; }
                         else if (deal.status === 'pending_payment') { statusText = (userRole === 'Buyer') ? "Action: Make Payment" : "Waiting for Payment"; }
                         else if (deal.status === 'payment_received') { statusText = (userRole === 'Seller') ? "Action: Confirm Delivery" : "Waiting for Delivery"; }
                         else if (deal.status === 'item_shipped') { statusText = (userRole === 'Buyer') ? "Action: Confirm Receipt" : "Waiting for Receipt"; }
 
+                        // *** FIXED: Use baseAmount for display consistency ***
+                        const displayAmount = deal.baseAmount ?? 0;
+
                         infoDiv.innerHTML = `
                             <p class="text-sm text-neutral-dark">With: <span class="font-medium">${otherPartyEmail || '[Pending]'}</span></p>
-                            <p class="text-sm text-neutral line-clamp-1" title="${deal.description}">Desc: ${deal.description}</p>
-                            <p class="text-sm text-neutral">Amount: <span class="font-semibold">₹${deal.amount.toFixed(2)}</span></p>
+                            <p class="text-sm text-neutral line-clamp-1" title="${deal.description || ''}">Desc: ${deal.description || 'N/A'}</p>
+                            <p class="text-sm text-neutral">Amount: <span class="font-semibold">₹${displayAmount.toFixed(2)}</span></p>
                             <p class="text-sm text-neutral">Status: <span class="status-badge ${statusClass}">${statusText}</span></p>
                             <p class="text-sm text-neutral">Your Role: <span class="font-medium">${userRole}</span></p>`;
-                        const actionButton = document.createElement('a');
-                        actionButton.href = `transaction-progress.html?dealId=${dealId}`;
-                        actionButton.className = 'bg-blue-500 text-white px-4 py-1 rounded text-sm hover:bg-blue-600 transition duration-200 whitespace-nowrap flex-shrink-0';
+                        const actionButton = document.createElement('a'); actionButton.href = `transaction-progress.html?dealId=${dealId}`; actionButton.className = 'bg-blue-500 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-600 transition duration-200 whitespace-nowrap flex-shrink-0 mt-2 sm:mt-0 self-start sm:self-center'; // Adjusted style/margin
                         actionButton.textContent = 'View / Action';
                          // Customize button appearance
                          if (deal.status === 'pending_payment' && userRole === 'Buyer') { actionButton.classList.replace('bg-blue-500','bg-green-500'); actionButton.classList.replace('hover:bg-blue-600','hover:bg-green-600'); actionButton.textContent = 'Make Payment'; }
@@ -285,86 +288,47 @@
                         activeDealsList.appendChild(listItem);
                      }
                 };
-                createdSnapshot.forEach(doc => processAndRenderDeal(doc));
-                buyerSnapshot.forEach(doc => processAndRenderDeal(doc, 'Buyer'));
-                sellerSnapshot.forEach(doc => processAndRenderDeal(doc, 'Seller'));
-
-                if (hasActiveDeals) { noActiveDealsMessage.style.display = 'none'; }
-                else { noActiveDealsMessage.style.display = 'block'; }
-                console.log("Finished processing active deals.");
-
+                createdSnapshot.forEach(doc => processAndRenderDeal(doc)); buyerSnapshot.forEach(doc => processAndRenderDeal(doc, 'Buyer')); sellerSnapshot.forEach(doc => processAndRenderDeal(doc, 'Seller'));
+                if (hasActiveDeals) { noActiveDealsMessage.style.display = 'none'; } else { noActiveDealsMessage.style.display = 'block'; }
             } catch (error) { console.error("Error fetching active deals: ", error); noActiveDealsMessage.textContent = "Error loading active deals."; noActiveDealsMessage.style.display = 'block'; }
         }
 
-         // --- Fetch Recent History (Completed / Rejected / Cancelled) ---
+         // --- Fetch Recent History ---
          async function fetchRecentHistory(userUid) {
-             // Check if elements exist before proceeding
-             if (!db || !recentHistoryList || !noRecentHistoryMessage || !currentUser) {
-                 console.error("Missing elements or user data for recent history display."); return;
-             }
-             recentHistoryList.innerHTML = '';
-             recentHistoryList.appendChild(noRecentHistoryMessage);
-             noRecentHistoryMessage.style.display = 'block';
-
-             const dealsRef = collection(db, "deals");
-             const historyStatuses = ['completed', 'rejected', 'cancelled'];
-             const buyerHistoryQuery = query(dealsRef, where("buyerUid", "==", userUid), where("status", "in", historyStatuses), orderBy("createdAt", "desc"), limit(5));
-             const sellerHistoryQuery = query(dealsRef, where("sellerUid", "==", userUid), where("status", "in", historyStatuses), orderBy("createdAt", "desc"), limit(5));
-
+             if (!db || !recentHistoryList || !noRecentHistoryMessage || !currentUser) { console.error("Missing elements or user data for recent history display."); return; }
+             recentHistoryList.innerHTML = ''; recentHistoryList.appendChild(noRecentHistoryMessage); noRecentHistoryMessage.style.display = 'block';
+             const dealsRef = collection(db, "deals"); const historyStatuses = ['completed', 'rejected', 'cancelled'];
+             const buyerHistoryQuery = query(dealsRef, where("buyerUid", "==", userUid), where("status", "in", historyStatuses), orderBy("createdAt", "desc"), limit(3));
+             const sellerHistoryQuery = query(dealsRef, where("sellerUid", "==", userUid), where("status", "in", historyStatuses), orderBy("createdAt", "desc"), limit(3));
              try {
-                 console.log("Fetching recent history...");
                  const [buyerHistorySnapshot, sellerHistorySnapshot] = await Promise.all([ getDocs(buyerHistoryQuery), getDocs(sellerHistoryQuery) ]);
-                 console.log(`History results: Buyer=${buyerHistorySnapshot.size}, Seller=${sellerHistorySnapshot.size}`);
-
-                 let hasHistory = false;
-                 const historyMap = new Map();
-
+                 let hasHistory = false; const historyMap = new Map();
                  const processAndRenderHistory = (docSnap) => {
                      if (!historyMap.has(docSnap.id)) {
-                         const deal = docSnap.data(); const dealId = docSnap.id;
-                         historyMap.set(dealId, { id: dealId, data: deal }); hasHistory = true;
-                         const userRole = (deal.buyerUid === userUid) ? 'Buyer' : 'Seller';
-                         const otherPartyEmail = (userRole === 'Buyer') ? deal.sellerEmail : deal.buyerEmail;
-                         // Ensure createdAt is a Timestamp before formatting
-                         const dealDate = deal.createdAt instanceof Timestamp ? deal.createdAt.toDate().toLocaleDateString() : (deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A');
-
-                         const listItem = document.createElement('div');
-                         listItem.className = 'history-item p-3 border-b border-gray-100 bg-white rounded-md'; // Use div instead of li if parent is div
-                         let statusColor = 'text-gray-500';
-                         if (deal.status === 'completed') statusColor = 'text-green-600';
-                         if (deal.status === 'rejected' || deal.status === 'cancelled') statusColor = 'text-red-600';
+                         const deal = docSnap.data(); const dealId = docSnap.id; historyMap.set(dealId, { id: dealId, data: deal }); hasHistory = true;
+                         const userRole = (deal.buyerUid === userUid) ? 'Buyer' : 'Seller'; const otherPartyEmail = (userRole === 'Buyer') ? deal.sellerEmail : deal.buyerEmail; const dealDate = deal.createdAt instanceof Timestamp ? deal.createdAt.toDate().toLocaleDateString() : (deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A');
+                         const listItem = document.createElement('div'); listItem.className = 'history-item p-3 border-b border-gray-100 bg-white rounded-md';
+                         let statusColor = 'text-gray-500'; if (deal.status === 'completed') statusColor = 'text-green-600'; if (deal.status === 'rejected' || deal.status === 'cancelled') statusColor = 'text-red-600';
+                         // *** FIXED: Use baseAmount for display consistency ***
+                         const displayAmount = deal.baseAmount ?? 0;
                          listItem.innerHTML = `
-                            <div class="flex justify-between items-center gap-2">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-neutral-dark font-medium truncate" title="${deal.description}">${deal.description}</p>
+                                    <p class="text-sm text-neutral-dark font-medium truncate" title="${deal.description || ''}">${deal.description || 'N/A'}</p>
                                     <p class="text-xs text-neutral">With: ${otherPartyEmail || 'N/A'} | Role: ${userRole} | Date: ${dealDate}</p>
                                 </div>
-                                <div class="text-right flex-shrink-0">
-                                     <p class="text-sm font-semibold ${statusColor} capitalize">${deal.status}</p>
-                                     <p class="text-xs text-neutral">Amount: ₹${deal.amount.toFixed(2)}</p>
+                                <div class="text-left sm:text-right flex-shrink-0 mt-1 sm:mt-0">
+                                     <p class="text-sm font-semibold ${statusColor} capitalize">${deal.status || 'Unknown'}</p>
+                                     <p class="text-xs text-neutral">Amount: ₹${displayAmount.toFixed(2)}</p>
                                 </div>
                             </div>`;
                          recentHistoryList.appendChild(listItem);
                      }
                  };
-                 buyerHistorySnapshot.forEach(doc => processAndRenderHistory(doc));
-                 sellerHistorySnapshot.forEach(doc => processAndRenderHistory(doc));
-
-                 // Sort combined results client-side (optional, as Firestore queries already sort)
-                 // If needed: Array.from(historyMap.values()).sort(...).forEach(render...)
-
-                 if (hasHistory) { noRecentHistoryMessage.style.display = 'none'; }
-                 else { noRecentHistoryMessage.style.display = 'block'; }
-                 console.log("Finished processing history.");
-
+                 buyerHistorySnapshot.forEach(doc => processAndRenderHistory(doc)); sellerHistorySnapshot.forEach(doc => processAndRenderHistory(doc));
+                 if (hasHistory) { noRecentHistoryMessage.style.display = 'none'; } else { noRecentHistoryMessage.style.display = 'block'; }
              } catch (error) { console.error("Error fetching recent history: ", error); noRecentHistoryMessage.textContent = "Error loading history."; noRecentHistoryMessage.style.display = 'block'; }
          }
-
-        // --- Logout Handler ---
-        async function handleLogout() {
-             if (!auth) return;
-            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
-        }
 
     </script>
      <script src="js/main.js"></script>

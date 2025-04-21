@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+     <style>
+        body[data-status="loading"] #admin-dashboard-content,
+        body[data-status="unauthorized"] #admin-dashboard-content { display: none; }
+        body[data-status="loading"]::before { content: 'Loading Admin Dashboard...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
+        #error-message { display: none; }
+        body[data-status="unauthorized"] #error-message { display: block; }
+        /* Stat card styling */
+        .stat-card { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06); }
+        .stat-title { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 1.875rem; font-weight: 600; color: #1f2937; }
+        .stat-link { font-size: 0.875rem; color: #3B82F6; hover:underline; }
+     </style>
+</head>
+<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+         <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap [Admin]</a> </div>
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                 <a href="admin-users.html" class="text-sm text-neutral hover:text-primary transition duration-200">User Verification</a>
+                 <span class="text-gray-300">|</span>
+                 <span id="user-email" class="text-neutral text-xs sm:text-sm hidden truncate max-w-[150px]"></span>
+                 <button id="logout-button" class="bg-red-500 text-white px-2 sm:px-3 py-1.5 rounded-md hover:bg-red-600 transition duration-300 text-xs flex-shrink-0 hidden"> Logout </button>
+                 <a href="login.html" class="text-primary hover:underline text-xs sm:text-sm hidden" id="login-link">Login</a>
+            </div>
+        </nav>
+    </header>
+
+     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"> Access Denied. You do not have permission. </div>
+
+    <main id="admin-dashboard-content" class="container mx-auto px-4 sm:px-6 py-8 flex-grow">
+        <h1 class="text-2xl sm:text-3xl font-bold text-neutral-darkest mb-6">Admin Dashboard</h1>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <div class="stat-card">
+                <h3 class="stat-title">Total Users</h3>
+                <p id="total-users" class="stat-value">-</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-title">Pending Verifications</h3>
+                <p id="pending-verifications" class="stat-value">-</p>
+                <a href="admin-users.html" class="stat-link">View Users</a>
+            </div>
+             <div class="stat-card">
+                <h3 class="stat-title">Total Deals Created</h3>
+                <p id="total-deals" class="stat-value">-</p>
+            </div>
+             <div class="stat-card">
+                <h3 class="stat-title">Completed Deal Value (GTV)</h3>
+                <p id="completed-gtv" class="stat-value">₹-</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full">
+             <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Deals by Status</h2>
+             <div id="deal-status-list" class="space-y-2 text-sm">
+                 <p id="loading-deals-status" class="text-neutral">Loading status counts...</p>
+                 </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light">
+         <div class="container mx-auto px-4 sm:px-6 py-8 text-center text-neutral text-sm"> &copy; <span id="current-year"></span> SecureSwap Admin Panel. </div>
+    </footer>
+
+    <script type="module">
+        // Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, query, where, getCountFromServer, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added getCountFromServer
+        import { firebaseConfig } from './js/firebase-config.js';
+
+        // --- !!! IMPORTANT: SET YOUR ADMIN UID HERE !!! ---
+        const ADMIN_UID = "8YHjoA6aS2VUPCPn717Sv0edCLH2"; // Replace with the actual UID of your admin user
+
+        // Initialize Firebase
+        let app, auth, db, currentUser = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized for Admin Panel");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            setPageStatus('unauthorized', "Error loading application services."); // Show error if init fails
+        }
+
+        // --- DOM Elements ---
+        let userEmailSpan, logoutButton, loginLink, adminDashboardContent, errorMessageDiv,
+            totalUsersSpan, pendingVerificationsSpan, totalDealsSpan, completedGtvSpan,
+            dealStatusList, loadingDealsStatusMsg;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Assign elements
+            userEmailSpan = document.getElementById('user-email');
+            logoutButton = document.getElementById('logout-button');
+            loginLink = document.getElementById('login-link');
+            adminDashboardContent = document.getElementById('admin-dashboard-content');
+            errorMessageDiv = document.getElementById('error-message');
+            // KPI elements
+            totalUsersSpan = document.getElementById('total-users');
+            pendingVerificationsSpan = document.getElementById('pending-verifications');
+            totalDealsSpan = document.getElementById('total-deals');
+            completedGtvSpan = document.getElementById('completed-gtv');
+            // Deal status elements
+            dealStatusList = document.getElementById('deal-status-list');
+            loadingDealsStatusMsg = document.getElementById('loading-deals-status');
+
+
+            const currentYearElement = document.getElementById('current-year');
+            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+        });
+
+        // --- Helper: Set Page Status & Message ---
+        function setPageStatus(status, message = '') {
+            document.body.dataset.status = status;
+            if (errorMessageDiv && message && status === 'unauthorized') {
+                 errorMessageDiv.textContent = message;
+            }
+            // Ensure adminContent exists before trying to style it
+            const contentEl = document.getElementById('admin-content');
+             if (contentEl) {
+                 contentEl.style.display = (status === 'loaded') ? 'block' : 'none';
+            }
+        }
+
+        // --- Helper: Show Action Message ---
+        function showActionMessage(message, isError = false) {
+             if (actionMessageDiv) {
+                actionMessageDiv.textContent = message;
+                actionMessageDiv.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+                actionMessageDiv.classList.add(isError ? 'bg-red-50' : 'bg-green-50', isError ? 'text-red-700' : 'text-green-700');
+                setTimeout(() => { actionMessageDiv.classList.add('hidden') }, 3000);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, email: user.email };
+                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
+                if (currentUser.uid === ADMIN_UID) {
+                    console.log("Admin user authorized.");
+                    setPageStatus('loaded');
+                    fetchAllAdminData(); // Fetch all dashboard data
+                } else { setPageStatus('unauthorized', "Access Denied."); }
+            } else {
+                currentUser = null;
+                console.log("User is signed out.");
+                if(userEmailSpan) userEmailSpan.classList.add('hidden');
+                if(logoutButton) logoutButton.classList.add('hidden');
+                if(loginLink) loginLink.classList.remove('hidden');
+                setPageStatus('unauthorized', "Please log in as an admin to view this page.");
+            }
+        });
+
+        // --- Fetch All Admin Data ---
+        async function fetchAllAdminData() {
+            console.log("Fetching all admin data...");
+            // Use Promise.all to fetch concurrently
+            await Promise.all([
+                fetchUserCounts(),
+                fetchDealCountsAndValue(),
+                fetchDealStatusBreakdown()
+            ]).catch(error => {
+                console.error("Error fetching admin data:", error);
+                // Display a general error on the dashboard if needed
+            });
+            console.log("Finished fetching admin data.");
+        }
+
+        // --- Fetch User Counts ---
+        async function fetchUserCounts() {
+            if (!db || !totalUsersSpan || !pendingVerificationsSpan) return;
+            console.log("Fetching user counts...");
+            try {
+                const usersRef = collection(db, "users");
+                // Get total users count
+                const totalSnapshot = await getCountFromServer(usersRef);
+                totalUsersSpan.textContent = totalSnapshot.data().count.toLocaleString();
+
+                // Get pending verification count (checking both statuses)
+                // Note: Firestore doesn't support OR queries easily on different fields.
+                // Fetching users with either status pending might be needed for exact count,
+                // or run two separate count queries if performance allows.
+                // Simple approach: Count users with pending KYC OR pending Bank (might double count if both pending)
+                 const pendingKycQuery = query(usersRef, where("kycDetails.status", "==", "pending"));
+                 const pendingBankQuery = query(usersRef, where("bankDetails.status", "==", "pending"));
+                 const [pendingKycSnapshot, pendingBankSnapshot] = await Promise.all([
+                     getCountFromServer(pendingKycQuery),
+                     getCountFromServer(pendingBankQuery)
+                 ]);
+                 // This isn't a perfect unique count, but gives an idea.
+                 // For unique count, fetch docs where kyc=pending OR bank=pending and count client-side.
+                 pendingVerificationsSpan.textContent = `${pendingKycSnapshot.data().count} KYC / ${pendingBankSnapshot.data().count} Bank`; // Display both counts for now
+
+                 console.log("User counts fetched.");
+            } catch (error) {
+                console.error("Error fetching user counts:", error);
+                totalUsersSpan.textContent = 'Error';
+                pendingVerificationsSpan.textContent = 'Error';
+            }
+        }
+
+        // --- Fetch Deal Counts and Completed Value ---
+        async function fetchDealCountsAndValue() {
+             if (!db || !totalDealsSpan || !completedGtvSpan) return;
+             console.log("Fetching deal counts and GTV...");
+             try {
+                 const dealsRef = collection(db, "deals");
+                 // Get total deals count
+                 const totalDealsSnapshot = await getCountFromServer(dealsRef);
+                 totalDealsSpan.textContent = totalDealsSnapshot.data().count.toLocaleString();
+
+                 // Calculate Completed GTV
+                 const completedQuery = query(dealsRef, where("status", "==", "completed"));
+                 const completedSnapshot = await getDocs(completedQuery);
+                 let totalGtv = 0;
+                 completedSnapshot.forEach(doc => {
+                     // Use baseAmount for GTV calculation
+                     totalGtv += doc.data().baseAmount ?? 0;
+                 });
+                 completedGtvSpan.textContent = `₹${totalGtv.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; // Format as currency
+                 console.log("Deal counts and GTV fetched.");
+             } catch (error) {
+                  console.error("Error fetching deal counts/GTV:", error);
+                  totalDealsSpan.textContent = 'Error';
+                  completedGtvSpan.textContent = 'Error';
+             }
+        }
+
+        // --- Fetch Deal Status Breakdown ---
+        async function fetchDealStatusBreakdown() {
+            if (!db || !dealStatusList || !loadingDealsStatusMsg) return;
+            console.log("Fetching deal status breakdown...");
+            loadingDealsStatusMsg.style.display = 'none'; // Hide loading message
+            dealStatusList.innerHTML = ''; // Clear previous list
+
+            const dealsRef = collection(db, "deals");
+            // Define statuses to count
+            const statusesToCount = [
+                'pending_confirmation', 'pending_payment', 'payment_received',
+                'item_shipped', 'completed', 'rejected', 'cancelled'
+                // Add 'disputed' later if needed
+            ];
+            const countPromises = statusesToCount.map(status => {
+                const q = query(dealsRef, where("status", "==", status));
+                return getCountFromServer(q).then(snap => ({ status: status, count: snap.data().count }));
+            });
+
+            try {
+                const statusCounts = await Promise.all(countPromises);
+                console.log("Deal status counts:", statusCounts);
+
+                if (statusCounts.length === 0) {
+                     dealStatusList.innerHTML = '<p class="text-neutral">No deals found.</p>';
+                     return;
+                }
+
+                statusCounts.forEach(item => {
+                    if (item.count > 0) { // Only display statuses with counts > 0
+                        const li = document.createElement('p'); // Use paragraph for simple list
+                        li.className = "flex justify-between items-center border-b border-gray-100 py-1";
+                        const statusText = item.status.replace(/_/g, ' ');
+                        li.innerHTML = `
+                            <span class="capitalize text-neutral-dark">${statusText}:</span>
+                            <span class="font-semibold text-neutral-darkest">${item.count.toLocaleString()}</span>
+                        `;
+                        dealStatusList.appendChild(li);
+                    }
+                });
+                 console.log("Deal status breakdown rendered.");
+
+            } catch (error) {
+                 console.error("Error fetching deal status breakdown:", error);
+                 dealStatusList.innerHTML = '<p class="text-red-600">Error loading status breakdown.</p>';
+            }
+        }
+
+
+        // --- Logout Handler ---
+        async function handleLogout() {
+             if (!auth) return;
+            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
+        }
+
+    </script>
+     <script src="js/main.js"></script>
+</body>
+</html>

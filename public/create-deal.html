@@ -10,97 +10,87 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="images/favicon.png" type="image/png">
      <style>
-        /* Hide form container if verification is pending */
+        /* Styles remain the same */
         body[data-status="loading"] #create-deal-form-container,
         body[data-status="error"] #create-deal-form-container,
         body[data-status="unauthorized"] #create-deal-form-container,
-        body[data-status="verification_pending"] #create-deal-form-container {
-            display: none;
-        }
-         /* Loading indicator */
-        body[data-status="loading"]::before {
-            content: 'Loading...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;
-         }
-         /* Verification message styling */
+        body[data-status="verification_pending"] #create-deal-form-container { display: none; }
+        body[data-status="loading"]::before { content: 'Loading...'; /* ... */ }
         #verification-message { display: none; }
         body[data-status="verification_pending"] #verification-message { display: block; }
-         /* Error message styling */
-         #error-message { display: none; }
-         body[data-status="error"] #error-message,
-         body[data-status="unauthorized"] #error-message { display: block; }
+        #error-message { display: none; }
+        body[data-status="error"] #error-message,
+        body[data-status="unauthorized"] #error-message { display: block; }
+        /* Style for fee summary */
+        #fee-summary { font-size: 0.875rem; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; background-color: #f9fafb; margin-top: 1rem; }
+        #fee-summary p { margin-bottom: 0.25rem; }
      </style>
 </head>
 <body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-             <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
-             <div class="flex items-center space-x-4">
-                  <a href="dashboard.html" class="text-neutral hover:text-primary text-sm"> &larr; Back to Dashboard</a>
-                  <span id="user-email" class="text-neutral text-sm hidden"></span>
-                 <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
-                  <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login</a>
-             </div>
-         </nav>
-    </header>
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div class="flex items-center space-x-4">
+                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm"> &larr; Back to Dashboard</a>
+                 <span id="user-email" class="text-neutral text-sm hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
+                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login</a>
+            </div>
+        </nav>
+   </header>
 
-    <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium hidden"></div>
-    <div id="verification-message" class="container mx-auto px-6 py-8 text-center">
-        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg shadow max-w-2xl mx-auto text-yellow-800 font-medium">
-             Your account verification (KYC & Bank Details) must be completed and approved before you can create new deals. Please check your <a href="profile.html" class="underline hover:text-yellow-900">Profile Page</a> for status.
-        </div>
-    </div>
+   <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium hidden"></div>
+   <div id="verification-message" class="container mx-auto px-6 py-8 text-center">
+       <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg shadow max-w-2xl mx-auto text-yellow-800 font-medium">
+            Your account verification (KYC & Bank Details) must be completed and approved before you can create new deals. Please check your <a href="profile.html" class="underline hover:text-yellow-900">Profile Page</a> for status.
+       </div>
+   </div>
 
 
-    <main id="create-deal-form-container" class="container mx-auto px-6 py-8 flex-grow"> <h1 class="text-3xl font-bold text-neutral-darkest mb-6 text-center md:text-left">Create a New Secure Deal</h1>
+    <main id="create-deal-form-container" class="container mx-auto px-6 py-8 flex-grow">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6 text-center md:text-left">Create a New Secure Deal</h1>
         <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-2xl mx-auto">
             <form id="create-deal-form" class="space-y-6">
-                <div>
-                    <label for="other-party-email" class="block text-sm font-medium text-neutral-dark">Other Party's Email Address</label>
-                    <input type="email" id="other-party-email" name="other_party_email" required autocomplete="email" placeholder="Enter the email of the person you're dealing with" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
-                    <p class="mt-1 text-xs text-neutral">They will receive an email to review and confirm the deal.</p>
-                </div>
-                <div>
-                    <label for="my-role" class="block text-sm font-medium text-neutral-dark">Your Role in this Deal</label>
-                    <select id="my-role" name="my_role" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-neutral-light focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
-                        <option value="" disabled selected>-- Select your role --</option>
-                        <option value="buyer">I am the Buyer (Making Payment)</option>
-                        <option value="seller">I am the Seller (Receiving Payment)</option>
-                    </select>
-                     <p class="mt-1 text-xs text-neutral">This determines who pays and who receives funds.</p>
-                 </div>
+
+                <div> <label for="other-party-email" class="block text-sm font-medium text-neutral-dark">Other Party's Email Address</label> <input type="email" id="other-party-email" name="other_party_email" required autocomplete="email" placeholder="Enter the email of the person you're dealing with" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"> <p class="mt-1 text-xs text-neutral">They will receive an email to review and confirm the deal.</p> </div>
+                <div> <label for="my-role" class="block text-sm font-medium text-neutral-dark">Your Role in this Deal</label> <select id="my-role" name="my_role" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-neutral-light focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"> <option value="" disabled selected>-- Select your role --</option> <option value="buyer">I am the Buyer (Making Payment)</option> <option value="seller">I am the Seller (Receiving Payment)</option> </select> <p class="mt-1 text-xs text-neutral">This determines who pays and who receives funds.</p> </div>
+                 <div> <label for="deal-description" class="block text-sm font-medium text-neutral-dark">Deal Description</label> <textarea id="deal-description" name="deal_description" rows="4" required placeholder="Briefly describe the item or service..." class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"></textarea> </div>
                  <div>
-                    <label for="deal-description" class="block text-sm font-medium text-neutral-dark">Deal Description</label>
-                    <textarea id="deal-description" name="deal_description" rows="4" required placeholder="Briefly describe the item or service being exchanged (e.g., 'Graphic design logo', 'Used iPhone 13 Pro', 'Consulting session')" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"></textarea>
-                </div>
-                <div>
-                    <label for="deal-amount" class="block text-sm font-medium text-neutral-dark">Deal Amount (INR)</label>
+                    <label for="deal-amount" class="block text-sm font-medium text-neutral-dark">Base Deal Amount (INR)</label>
                     <div class="mt-1 relative rounded-md shadow-sm">
                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"> <span class="text-neutral sm:text-sm">₹</span> </div>
                          <input type="number" id="deal-amount" name="deal_amount" required min="1" step="0.01" placeholder="0.00" class="block w-full pl-7 pr-12 py-2 border border-neutral-light rounded-md placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
                          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"> <span class="text-neutral sm:text-sm" id="currency-code">INR</span> </div>
                     </div>
-                     <p class="mt-1 text-xs text-neutral">This is the amount the buyer will pay into escrow.</p>
+                     <p class="mt-1 text-xs text-neutral">This is the base value of the item/service being exchanged.</p>
                 </div>
+
+                 <div id="fee-summary" class="hidden">
+                     <p><strong>Base Amount:</strong> ₹<span id="summary-base">0.00</span></p>
+                     <p><strong>Buyer Fee (1%):</strong> ₹<span id="summary-buyer-fee">0.00</span></p>
+                     <p><strong>Seller Fee (1%):</strong> ₹<span id="summary-seller-fee">0.00</span></p>
+                     <hr class="my-1 border-gray-300">
+                     <p><strong>Total Buyer Pays:</strong> ₹<span id="summary-buyer-pays" class="font-semibold">0.00</span></p>
+                     <p><strong>Net Seller Receives:</strong> ₹<span id="summary-seller-receives" class="font-semibold">0.00</span></p>
+                     <p class="text-xs text-neutral mt-1">(Total Platform Fee: ₹<span id="summary-platform-fee">0.00</span>)</p>
+                 </div>
 
                  <div id="form-message" class="text-sm hidden mt-2 text-center p-3 rounded-md"></div>
 
                  <div>
-                    <button type="submit" id="submit-deal-button"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled> Create Deal & Notify Other Party
-                    </button>
+                    <button type="submit" id="submit-deal-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled> Create Deal & Notify Other Party </button>
                 </div>
             </form>
         </div>
     </main>
 
     <footer class="bg-neutral-darkest text-neutral-light"> <div class="container mx-auto px-6 py-8 text-center text-neutral">
-             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
-             <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
-             <a href="terms.html" class="hover:text-white">Terms of Service</a>
-        </div>
-    </footer>
+        &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
+        <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
+        <a href="terms.html" class="hover:text-white">Terms of Service</a>
+   </div>
+</footer>
 
     <script type="module">
         // Imports
@@ -119,7 +109,7 @@
         } catch (error) { console.error("Firebase initialization failed:", error); setPageStatus('error', "Error loading services."); }
 
         // DOM Elements
-        let createDealForm, formMessageDiv, submitDealButton, userEmailSpan, logoutButton, loginLink, verificationMessageDiv;
+        let createDealForm, formMessageDiv, submitDealButton, userEmailSpan, logoutButton, loginLink, verificationMessageDiv, dealAmountInput, feeSummaryDiv;
 
         document.addEventListener('DOMContentLoaded', () => {
             createDealForm = document.getElementById('create-deal-form');
@@ -129,12 +119,17 @@
             logoutButton = document.getElementById('logout-button');
             loginLink = document.getElementById('login-link');
             verificationMessageDiv = document.getElementById('verification-message');
+            dealAmountInput = document.getElementById('deal-amount'); // Get amount input
+            feeSummaryDiv = document.getElementById('fee-summary'); // Get summary div
 
             const currentYearElement = document.getElementById('current-year');
             if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
 
             if (createDealForm) createDealForm.addEventListener('submit', handleCreateDeal);
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            // Add listener to amount input to update summary
+            if(dealAmountInput) dealAmountInput.addEventListener('input', updateFeeSummary);
+
         });
 
          // Helper: Show Form Message
@@ -212,17 +207,42 @@
             }
         }
 
-        // Create Deal Handler
+
+        // --- NEW: Update Fee Summary Display ---
+        function updateFeeSummary() {
+            if (!dealAmountInput || !feeSummaryDiv) return;
+            const baseAmount = parseFloat(dealAmountInput.value) || 0;
+
+            if (baseAmount > 0) {
+                const buyerFee = baseAmount * 0.01;
+                const sellerFee = baseAmount * 0.01;
+                const platformFee = buyerFee + sellerFee;
+                const amountBuyerPays = baseAmount + buyerFee;
+                const amountSellerReceives = baseAmount - sellerFee;
+
+                document.getElementById('summary-base').textContent = baseAmount.toFixed(2);
+                document.getElementById('summary-buyer-fee').textContent = buyerFee.toFixed(2);
+                document.getElementById('summary-seller-fee').textContent = sellerFee.toFixed(2);
+                document.getElementById('summary-buyer-pays').textContent = amountBuyerPays.toFixed(2);
+                document.getElementById('summary-seller-receives').textContent = amountSellerReceives.toFixed(2);
+                document.getElementById('summary-platform-fee').textContent = platformFee.toFixed(2);
+
+                feeSummaryDiv.classList.remove('hidden');
+            } else {
+                feeSummaryDiv.classList.add('hidden'); // Hide if amount is zero or invalid
+            }
+        }
+
+
+        // --- Create Deal Handler (UPDATED) ---
         async function handleCreateDeal(event) {
             event.preventDefault();
-            if (!currentUser || !db || !formMessageDiv || !isVerified) {
-                 showFormMessage("Your account must be verified to create deals.", true);
-                 console.error("Deal creation blocked: User not verified or other prerequisites failed.");
-                 return;
-            }
-            formMessageDiv.classList.add('hidden');
-            if(submitDealButton) submitDealButton.disabled = true; // Disable during processing
+            if (!currentUser || !db || !formMessageDiv || !isVerified) { /* ... verification check ... */ return; }
 
+            formMessageDiv.classList.add('hidden');
+            if(submitDealButton) submitDealButton.disabled = true;
+
+            // Get form data
             const otherPartyEmail = createDealForm.other_party_email.value.trim();
             const creatorRole = createDealForm.my_role.value;
             const description = createDealForm.deal_description.value.trim();
@@ -230,36 +250,52 @@
 
             // Validation
             if (!otherPartyEmail || !creatorRole || !description || !amountInput) { showFormMessage("Please fill in all fields.", true); updateButtonState(); return; }
-            const amount = parseFloat(amountInput);
-            if (isNaN(amount) || amount <= 0) { showFormMessage("Please enter a valid positive amount.", true); updateButtonState(); return; }
+            const baseAmount = parseFloat(amountInput); // This is the base amount
+            if (isNaN(baseAmount) || baseAmount <= 0) { showFormMessage("Please enter a valid positive base amount.", true); updateButtonState(); return; }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(otherPartyEmail)) { showFormMessage("Invalid email for other party.", true); updateButtonState(); return; }
             if (otherPartyEmail.toLowerCase() === currentUser.email.toLowerCase()) { showFormMessage("Cannot create deal with yourself.", true); updateButtonState(); return; }
 
+            // --- Calculate Fees and Final Amounts ---
+            const buyerFee = baseAmount * 0.01;
+            const sellerFee = baseAmount * 0.01;
+            const platformFee = buyerFee + sellerFee;
+            const amountBuyerPays = baseAmount + buyerFee;
+            const amountSellerReceives = baseAmount - sellerFee;
+            // --- End Calculations ---
+
+            // Prepare deal data for Firestore, including all amounts
             const newDeal = {
                 creatorUid: currentUser.uid,
                 creatorEmail: currentUser.email,
                 creatorRole: creatorRole,
                 otherPartyEmail: otherPartyEmail,
                 description: description,
-                amount: amount,
+
+                baseAmount: baseAmount, // Original amount
+                buyerFee: buyerFee,
+                sellerFee: sellerFee,
+                platformFee: platformFee,
+                amountBuyerPays: amountBuyerPays, // Amount buyer will actually pay
+                amountSellerReceives: amountSellerReceives, // Amount seller will actually receive
                 currency: 'INR',
+
                 status: 'pending_confirmation',
                 createdAt: serverTimestamp(),
-                buyerUid: null,
-                sellerUid: null,
-                buyerEmail: null, // Will be set on confirmation
-                sellerEmail: null // Will be set on confirmation
+                buyerUid: null, sellerUid: null, buyerEmail: null, sellerEmail: null,
             };
+
+            console.log("Creating deal with data:", newDeal); // Log data being saved
 
             try {
                 const docRef = await addDoc(collection(db, "deals"), newDeal);
                 showFormMessage(`Deal created successfully! Deal ID: ${docRef.id}<br>Waiting for other party to confirm.`, false);
                 createDealForm.reset();
+                feeSummaryDiv.classList.add('hidden'); // Hide summary after reset
             } catch (error) {
                 console.error("Error adding document: ", error);
                 showFormMessage("Failed to create deal. Please try again.", true);
             } finally {
-                 updateButtonState(); // Re-enable button based on verification status
+                 updateButtonState(); // Re-enable/disable button based on verification
             }
         }
 

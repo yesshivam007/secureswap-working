@@ -10,35 +10,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="images/favicon.png" type="image/png">
      <style>
-        /* Added verification_pending state */
+        /* Styles for loading/error states and status badges */
         body[data-status="loading"] #confirmation-content,
         body[data-status="error"] #confirmation-content,
         body[data-status="unauthorized"] #confirmation-content,
         body[data-status="not-found"] #confirmation-content,
         body[data-status="already-processed"] #confirmation-content,
         body[data-status="verification_pending"] #confirmation-content { display: none; }
-
         body[data-status="loading"]::before { content: 'Loading Deal...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
         #error-message { display: none; }
-        /* Show error div for relevant statuses */
         body[data-status="error"] #error-message,
         body[data-status="unauthorized"] #error-message,
         body[data-status="not-found"] #error-message,
         body[data-status="already-processed"] #error-message,
         body[data-status="verification_pending"] #error-message { display: block; }
+         /* Status badge styles */
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; text-transform: capitalize; display: inline-block; }
+        .status-pending { background-color: #FEF3C7; color: #92400E; }
+        .status-verified { background-color: #DCFCE7; color: #166534; }
+        .status-rejected { background-color: #FEE2E2; color: #991B1B; }
+        .status-missing { background-color: #F3F4F6; color: #4B5563; }
      </style>
 </head>
-<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading"> <header class="bg-white shadow-sm sticky top-0 z-50">
+<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
          <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
             <div class="flex items-center space-x-4">
-                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm hidden" id="dashboard-link"> &larr; Back to Dashboard</a>
-                 <span id="user-email" class="text-neutral text-sm hidden"></span>
-                 <button id="logout-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#e81700" class="size-4" height="30" width ="30">
-                        <path fill-rule="evenodd" d="M2 4.75A2.75 2.75 0 0 1 4.75 2h3a2.75 2.75 0 0 1 2.75 2.75v.5a.75.75 0 0 1-1.5 0v-.5c0-.69-.56-1.25-1.25-1.25h-3c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h3c.69 0 1.25-.56 1.25-1.25v-.5a.75.75 0 0 1 1.5 0v.5A2.75 2.75 0 0 1 7.75 14h-3A2.75 2.75 0 0 1 2 11.25v-6.5Zm9.47.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 1 1-1.06-1.06l.97-.97H5.25a.75.75 0 0 1 0-1.5h7.19l-.97-.97a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                      </svg>
-                </button>
+                <a href="dashboard.html" class="text-neutral hover:text-primary text-sm hidden" id="dashboard-link"> &larr; Back to Dashboard</a>
+                <span id="user-email" class="text-neutral text-sm hidden"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
                  <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login to Confirm</a>
             </div>
         </nav>
@@ -46,45 +48,41 @@
 
     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"></div>
 
-    <main id="confirmation-content" class="container mx-auto px-6 py-8 flex-grow"> <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Confirm Your Deal</h1>
+    <main id="confirmation-content" class="container mx-auto px-6 py-8 flex-grow">
+        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Confirm Your Deal</h1>
         <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-2xl mx-auto">
             <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Deal Details</h2>
-            <div class="space-y-3 text-neutral-dark mb-6 border-b pb-6">
+            <div class="space-y-3 text-neutral-dark mb-6 border-b pb-6 text-sm">
                 <p><strong>From:</strong> <span id="creator-email">[Loading...]</span></p>
                 <p><strong>Description:</strong> <span id="deal-description">[Loading...]</span></p>
-                <p><strong>Amount:</strong> <span class="font-semibold">₹<span id="deal-amount">[Loading...]</span> INR</span></p>
-                <p><strong>Your Role:</strong> <span id="your-role" class="font-semibold">[Loading...]</span></p>
+                <p><strong>Base Amount:</strong> ₹<span id="deal-base-amount">[...]</span> INR</p>
+                <p><strong>Platform Fee (Split 1%/1%):</strong> Buyer Fee: ₹<span id="deal-buyer-fee">[...]</span> + Seller Fee: ₹<span id="deal-seller-fee">[...]</span> = Total ₹<span id="deal-platform-fee">[...]</span></p>
+                <hr class="my-2 border-gray-200">
+                <div id="confirm-amount-section" class="text-base">
+                     <p class="text-neutral">[Loading relevant amount...]</p>
+                </div>
+                <hr class="my-2 border-gray-200">
+                <p><strong>Your Role in this Deal:</strong> <span id="your-role" class="font-semibold">[Loading...]</span></p>
             </div>
-
-            <p class="text-sm text-neutral mb-6">
-                Please review the details above carefully. By clicking "Accept Deal", you agree to the terms described.
-                If you accept as the Buyer, you will be prompted to make the payment. If you accept as the Seller, you agree to deliver the item/service once the Buyer has paid.
-            </p>
+            <p class="text-sm text-neutral mb-6"> Please review the details above carefully. By clicking "Accept Deal", you agree to the terms described. If you accept as the Buyer, you will be prompted to make the payment. If you accept as the Seller, you agree to deliver the item/service once the Buyer has paid. </p>
 
              <div class="flex flex-col sm:flex-row gap-4">
-                 <button id="accept-button" class="flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-secondary hover:bg-secondary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    Accept Deal
-                 </button>
-                  <button id="reject-button" class="flex-1 justify-center py-2 px-4 border border-red-500 rounded-md shadow-sm text-lg font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    Reject Deal
-                 </button>
+                 <button id="accept-button" class="flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-secondary hover:bg-secondary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled> Accept Deal </button>
+                 <button id="reject-button" class="flex-1 justify-center py-2 px-4 border border-red-500 rounded-md shadow-sm text-lg font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled> Reject Deal </button>
              </div>
              <div id="action-message" class="text-sm hidden mt-6 text-center p-3 rounded-md"></div>
         </div>
     </main>
 
-    <footer class="bg-neutral-darkest text-neutral-light"> <div class="container mx-auto px-6 py-8 text-center text-neutral">
-             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
-             <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
-             <a href="terms.html" class="hover:text-white">Terms of Service</a>
-        </div>
+    <footer class="bg-neutral-darkest text-neutral-light">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral"> &copy; <span id="current-year"></span> SecureSwap. All rights reserved. | <a href="privacy.html" class="hover:text-white">Privacy Policy</a> | <a href="terms.html" class="hover:text-white">Terms of Service</a> </div>
     </footer>
 
     <script type="module">
         // Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added Timestamp
+        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { firebaseConfig } from './js/firebase-config.js';
 
         // Initialize Firebase
@@ -98,8 +96,9 @@
 
         // --- DOM Elements ---
         let userEmailSpan, logoutButton, dashboardLink, loginLink, errorMessageDiv, confirmationContent,
-            creatorEmailSpan, dealDescriptionSpan, dealAmountSpan, yourRoleSpan,
-            acceptButton, rejectButton, actionMessageDiv;
+            creatorEmailSpan, dealDescriptionSpan,
+            dealBaseAmountSpan, dealBuyerFeeSpan, dealSellerFeeSpan, dealPlatformFeeSpan,
+            confirmAmountSection, yourRoleSpan, acceptButton, rejectButton, actionMessageDiv;
 
         document.addEventListener('DOMContentLoaded', () => {
             // Assign elements
@@ -111,7 +110,11 @@
             confirmationContent = document.getElementById('confirmation-content');
             creatorEmailSpan = document.getElementById('creator-email');
             dealDescriptionSpan = document.getElementById('deal-description');
-            dealAmountSpan = document.getElementById('deal-amount');
+            dealBaseAmountSpan = document.getElementById('deal-base-amount');
+            dealBuyerFeeSpan = document.getElementById('deal-buyer-fee');
+            dealSellerFeeSpan = document.getElementById('deal-seller-fee');
+            dealPlatformFeeSpan = document.getElementById('deal-platform-fee'); // Optional span
+            confirmAmountSection = document.getElementById('confirm-amount-section');
             yourRoleSpan = document.getElementById('your-role');
             acceptButton = document.getElementById('accept-button');
             rejectButton = document.getElementById('reject-button');
@@ -120,28 +123,24 @@
             const currentYearElement = document.getElementById('current-year');
             if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
 
-            // Add button listeners
             if (acceptButton) acceptButton.addEventListener('click', handleAcceptDeal);
             if (rejectButton) rejectButton.addEventListener('click', handleRejectDeal);
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 
-            // Get Deal ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             dealId = urlParams.get('dealId');
             if (!dealId) { setPageStatus('error', "No Deal ID provided in the URL."); }
-            // Auth check will trigger fetching deal data if dealId exists
+            // Auth check triggers fetch
         });
 
         // --- Helper: Set Page Status & Message ---
         function setPageStatus(status, message = '') {
-             requestAnimationFrame(() => { // Ensure DOM updates happen smoothly
+            requestAnimationFrame(() => {
                 document.body.dataset.status = status;
                 if (errorMessageDiv && message) {
                      errorMessageDiv.textContent = message;
                      errorMessageDiv.style.display = ['error', 'unauthorized', 'not-found', 'already-processed', 'verification_pending'].includes(status) ? 'block' : 'none';
-                } else if (errorMessageDiv) {
-                     errorMessageDiv.style.display = 'none';
-                }
+                } else if (errorMessageDiv) { errorMessageDiv.style.display = 'none'; }
                 const contentEl = document.getElementById('confirmation-content');
                 if (contentEl) { contentEl.style.display = (status === 'loaded') ? 'block' : 'none'; }
              });
@@ -159,9 +158,7 @@
 
         // --- Helper: Enable/Disable Action Buttons ---
         function setActionButtonsDisabled(disabled) {
-            // Only enable if user is verified AND status is correct
             const enable = !disabled && isUserVerified && dealData?.status === 'pending_confirmation';
-            console.log(`Setting buttons: disabled=${!enable} (isVerified=${isUserVerified}, status=${dealData?.status})`); // Log button state logic
             if (acceptButton) acceptButton.disabled = !enable;
             if (rejectButton) rejectButton.disabled = !enable;
         }
@@ -170,25 +167,23 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = { uid: user.uid, email: user.email };
-                console.log("User logged in:", currentUser.uid);
+                // Update header elements
                 if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
                 if(logoutButton) logoutButton.classList.remove('hidden');
                 if(dashboardLink) dashboardLink.classList.remove('hidden');
                 if(loginLink) loginLink.classList.add('hidden');
 
-                // Check verification status FIRST
-                await checkUserVerification(user.uid);
-
-                if (dealId) { await fetchAndDisplayDeal(); } // Await fetch completion
+                await checkUserVerification(user.uid); // Check verification first
+                if (dealId) { await fetchAndDisplayDeal(); } // Then fetch deal
                 else { setPageStatus('error', "Deal ID is missing."); }
-
             } else {
-                currentUser = null; isUserVerified = false; // Reset verification on logout
-                console.log("User is signed out.");
+                currentUser = null; isUserVerified = false;
+                // Update header elements
                 if(userEmailSpan) userEmailSpan.classList.add('hidden');
                 if(logoutButton) logoutButton.classList.add('hidden');
                 if(dashboardLink) dashboardLink.classList.add('hidden');
                 if(loginLink) loginLink.classList.remove('hidden');
+                // Set page status
                 if (dealId) setPageStatus('unauthorized', "Please log in to view and confirm this deal.");
                 else { setPageStatus('error', "Deal ID is missing."); }
             }
@@ -196,20 +191,17 @@
 
          // --- Check User Verification Status ---
         async function checkUserVerification(uid) {
-            isUserVerified = false; // Reset before check
-            if (!db) { console.error("Firestore not initialized for verification check"); return; }
-            console.log(`Checking verification for user: ${uid}`);
+            isUserVerified = false; // Reset
+            if (!db) { console.error("Firestore not initialized"); return; }
             try {
                 const userDocRef = doc(db, "users", uid);
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
                     const userData = userDocSnap.data();
-                    if (userData.kycDetails?.status === 'verified' && userData.bankDetails?.status === 'verified') {
-                        console.log("Confirming user IS verified.");
-                        isUserVerified = true;
-                    } else { console.log("Confirming user verification NOT complete/verified."); }
-                } else { console.error("User document not found for verification check."); }
+                    if (userData.kycDetails?.status === 'verified' && userData.bankDetails?.status === 'verified') { isUserVerified = true; }
+                }
             } catch (error) { console.error("Error checking user verification:", error); }
+            console.log(`User verification status: ${isUserVerified}`);
         }
 
 
@@ -217,124 +209,60 @@
         async function fetchAndDisplayDeal() {
             if (!dealId || !db || !currentUser) return;
             setPageStatus('loading');
-            console.log(`Fetching deal: ${dealId}`);
             try {
                 const dealDocRef = doc(db, "deals", dealId);
                 const dealDocSnap = await getDoc(dealDocRef);
-
                 if (dealDocSnap.exists()) {
                     dealData = dealDocSnap.data();
                     console.log("Deal data fetched:", dealData);
-
-                    // Auth Check
-                    if (dealData.otherPartyEmail.toLowerCase() !== currentUser.email.toLowerCase()) {
-                        setPageStatus('unauthorized', "You are not authorized to view/confirm this deal."); return;
-                    }
-                    // Status Check
-                    if (dealData.status !== 'pending_confirmation') {
-                        setPageStatus('already-processed', `This deal is already ${dealData.status}.`);
-                        setActionButtonsDisabled(true); displayDealDetails(dealData); return;
-                    }
-                    // Verification Check (using flag set by checkUserVerification)
-                    if (!isUserVerified) {
-                         setPageStatus('verification_pending', "Your account must be verified (KYC & Bank) before you can accept or reject deals. Check your Profile page.");
-                         setActionButtonsDisabled(true); displayDealDetails(dealData); return;
-                    }
-
-                    // If all checks pass: Display details and enable buttons
-                    displayDealDetails(dealData);
-                    setPageStatus('loaded');
-                    setActionButtonsDisabled(false); // Enable buttons now
-                    console.log("Deal loaded, user verified. Buttons enabled.");
-
+                    if (dealData.otherPartyEmail.toLowerCase() !== currentUser.email.toLowerCase()) { setPageStatus('unauthorized', "Not authorized."); return; }
+                    if (dealData.status !== 'pending_confirmation') { setPageStatus('already-processed', `Deal already ${dealData.status}.`); setActionButtonsDisabled(true); displayDealDetails(dealData); return; }
+                    if (!isUserVerified) { setPageStatus('verification_pending', "Your account must be verified."); setActionButtonsDisabled(true); displayDealDetails(dealData); return; }
+                    displayDealDetails(dealData); setPageStatus('loaded'); setActionButtonsDisabled(false); console.log("Deal loaded. Buttons enabled.");
                 } else { setPageStatus('not-found', "Deal not found."); }
             } catch (error) { console.error("Error getting deal document:", error); setPageStatus('error', "Error fetching deal details."); }
         }
 
         // --- Helper to display deal data ---
         function displayDealDetails(data) {
+             if (!currentUser || !data) { console.error("Missing data for display"); return; }
              if (creatorEmailSpan) creatorEmailSpan.textContent = data.creatorEmail || 'N/A';
              if (dealDescriptionSpan) dealDescriptionSpan.textContent = data.description || 'N/A';
-             if (dealAmountSpan) dealAmountSpan.textContent = data.amount?.toFixed(2) || 'N/A';
-             if (yourRoleSpan) { yourRoleSpan.textContent = (data.creatorRole === 'buyer') ? 'Seller' : 'Buyer'; }
+             const baseAmount = data.baseAmount ?? 0; const buyerFee = data.buyerFee ?? 0; const sellerFee = data.sellerFee ?? 0; const platformFee = data.platformFee ?? (buyerFee + sellerFee); const amountBuyerPays = data.amountBuyerPays ?? (baseAmount + buyerFee); const amountSellerReceives = data.amountSellerReceives ?? (baseAmount - sellerFee);
+             console.log("Displaying amounts:", { baseAmount, buyerFee, sellerFee, amountBuyerPays, amountSellerReceives }); // Log amounts being displayed
+             if(dealBaseAmountSpan) dealBaseAmountSpan.textContent = baseAmount.toFixed(2);
+             if(dealBuyerFeeSpan) dealBuyerFeeSpan.textContent = buyerFee.toFixed(2);
+             if(dealSellerFeeSpan) dealSellerFeeSpan.textContent = sellerFee.toFixed(2);
+             const platformFeeSpan = document.getElementById('deal-platform-fee'); if(platformFeeSpan) platformFeeSpan.textContent = platformFee.toFixed(2);
+             const thisUserRole = (data.creatorRole === 'buyer') ? 'Seller' : 'Buyer';
+             if (yourRoleSpan) yourRoleSpan.textContent = thisUserRole;
+             if (confirmAmountSection) {
+                 if (thisUserRole === 'Buyer') { confirmAmountSection.innerHTML = `<p class="text-base md:text-lg"><strong class="w-32 inline-block text-neutral-dark">Total You Will Pay:</strong> <span class="font-bold text-primary">₹${amountBuyerPays.toFixed(2)} INR</span></p>`; }
+                 else { confirmAmountSection.innerHTML = `<p class="text-base md:text-lg"><strong class="w-32 inline-block text-neutral-dark">Net You Will Receive:</strong> <span class="font-bold text-secondary-dark">₹${amountSellerReceives.toFixed(2)} INR</span></p>`; }
+             }
         }
 
         // --- Accept Deal Handler ---
         async function handleAcceptDeal() {
-            console.log("handleAcceptDeal called");
-            if (!currentUser || !db || !dealId || !dealData || dealData.status !== 'pending_confirmation' || !isUserVerified) {
-                showActionMessage("Cannot accept deal. Invalid state, not verified, or data missing.", true);
-                console.error("Accept prerequisite check failed.");
-                return;
-            }
-            setActionButtonsDisabled(true);
-            showActionMessage("Accepting deal...", false);
-
-            const isCreatorBuyer = dealData.creatorRole === 'buyer';
-            const updateData = {
-                status: 'pending_payment',
-                buyerUid: isCreatorBuyer ? dealData.creatorUid : currentUser.uid,
-                sellerUid: isCreatorBuyer ? currentUser.uid : dealData.creatorUid,
-                buyerEmail: isCreatorBuyer ? dealData.creatorEmail : currentUser.email,
-                sellerEmail: isCreatorBuyer ? currentUser.email : dealData.creatorEmail,
-                confirmedAt: serverTimestamp()
-            };
-            console.log("Update data for accept:", updateData);
-
-            try {
-                const dealDocRef = doc(db, "deals", dealId);
-                await updateDoc(dealDocRef, updateData);
-                console.log("Deal accepted and updated:", dealId);
-                // Update local data and UI immediately
-                dealData.status = 'pending_payment';
-                dealData.buyerUid = updateData.buyerUid; dealData.sellerUid = updateData.sellerUid;
-                dealData.buyerEmail = updateData.buyerEmail; dealData.sellerEmail = updateData.sellerEmail;
-                displayDealDetails(dealData); // Refresh display if needed
-                setPageStatus('already-processed', 'Deal accepted! Redirecting to dashboard...'); // Show confirmation
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000); // Redirect after delay
-
-            } catch (error) {
-                 console.error("Error updating deal document:", error);
-                 showActionMessage("Failed to accept deal. Please try again.", true);
-                 setActionButtonsDisabled(false); // Re-enable on error only if still verifiable and pending
-            }
+             if (!currentUser || !db || !dealId || !dealData || dealData.status !== 'pending_confirmation' || !isUserVerified) { showActionMessage("Cannot accept deal.", true); return; }
+             setActionButtonsDisabled(true); showActionMessage("Accepting...", false);
+             const isCreatorBuyer = dealData.creatorRole === 'buyer';
+             const updateData = { status: 'pending_payment', buyerUid: isCreatorBuyer ? dealData.creatorUid : currentUser.uid, sellerUid: isCreatorBuyer ? currentUser.uid : dealData.creatorUid, buyerEmail: isCreatorBuyer ? dealData.creatorEmail : currentUser.email, sellerEmail: isCreatorBuyer ? currentUser.email : dealData.creatorEmail, confirmedAt: serverTimestamp() };
+             try { const dealDocRef = doc(db, "deals", dealId); await updateDoc(dealDocRef, updateData); dealData.status = 'pending_payment'; setPageStatus('already-processed', 'Deal accepted! Redirecting...'); setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500); }
+             catch (error) { console.error("Error accepting deal:", error); showActionMessage("Failed to accept deal.", true); setActionButtonsDisabled(false); }
         }
 
         // --- Reject Deal Handler ---
         async function handleRejectDeal() {
-             console.log("handleRejectDeal called");
-             if (!currentUser || !db || !dealId || !dealData || dealData.status !== 'pending_confirmation' || !isUserVerified) {
-                 showActionMessage("Cannot reject deal. Invalid state, not verified, or data missing.", true);
-                 console.error("Reject prerequisite check failed.");
-                 return;
-            }
-            setActionButtonsDisabled(true);
-            showActionMessage("Rejecting deal...", false);
-
-            const updateData = { status: 'rejected', rejectedAt: serverTimestamp() };
-            console.log("Update data for reject:", updateData);
-
-             try {
-                const dealDocRef = doc(db, "deals", dealId);
-                await updateDoc(dealDocRef, updateData);
-                console.log("Deal rejected:", dealId);
-                 // Update local data and UI immediately
-                 dealData.status = 'rejected';
-                 displayDealDetails(dealData); // Refresh display if needed
-                 setPageStatus('already-processed', 'Deal rejected.'); // Show final state
-
-            } catch (error) {
-                 console.error("Error updating deal document:", error);
-                 showActionMessage("Failed to reject deal. Please try again.", true);
-                 setActionButtonsDisabled(false); // Re-enable on error only if still verifiable and pending
-            }
+             if (!currentUser || !db || !dealId || !dealData || dealData.status !== 'pending_confirmation' || !isUserVerified) { showActionMessage("Cannot reject deal.", true); return; }
+             setActionButtonsDisabled(true); showActionMessage("Rejecting...", false);
+             const updateData = { status: 'rejected', rejectedAt: serverTimestamp() };
+             try { const dealDocRef = doc(db, "deals", dealId); await updateDoc(dealDocRef, updateData); dealData.status = 'rejected'; setPageStatus('already-processed', 'Deal rejected.'); }
+             catch (error) { console.error("Error rejecting deal:", error); showActionMessage("Failed to reject deal.", true); setActionButtonsDisabled(false); }
         }
 
          // --- Logout Handler ---
-        async function handleLogout() {
-             if (!auth) return;
-            try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
-        }
+        async function handleLogout() { if (!auth) return; try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); } }
 
     </script>
      <script src="js/main.js"></script>

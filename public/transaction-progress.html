@@ -30,39 +30,45 @@
         .status-pending_confirmation { background-color: #E0E7FF; color: #3730A3; }
      </style>
 </head>
-<body class="bg-neutral-lightest" data-status="loading">
+<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
-            <div class="flex items-center space-x-4">
-                 <a href="dashboard.html" class="text-neutral hover:text-primary text-sm" id="dashboard-link"> &larr; Back to Dashboard</a>
-                 <span id="user-email" class="text-neutral text-sm hidden"></span>
-                <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
-                 <a href="login.html" class="text-primary hover:underline text-sm hidden" id="login-link">Login to View</a>
+         <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div> <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                 <a href="dashboard.html" class="text-neutral hover:text-primary text-xs sm:text-sm" id="dashboard-link"> &larr; Dashboard</a>
+                 <span id="user-email" class="text-neutral text-xs sm:text-sm hidden truncate max-w-[100px] sm:max-w-[150px]"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-2 sm:px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
+                 <a href="login.html" class="text-primary hover:underline text-xs sm:text-sm hidden" id="login-link">Login to View</a>
             </div>
         </nav>
     </header>
 
-     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"></div>
+     <div id="error-message" class="container mx-auto px-4 sm:px-6 py-8 text-center text-red-600 font-medium"></div>
 
-    <main id="progress-content" class="container mx-auto px-6 py-8">
-        <h1 class="text-3xl font-bold text-neutral-darkest mb-6">Transaction Progress</h1>
-        <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
+    <main id="progress-content" class="container mx-auto px-4 sm:px-6 py-8 flex-grow">
+        <h1 class="text-2xl sm:text-3xl font-bold text-neutral-darkest mb-6">Transaction Progress</h1>
+        <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
             <div class="mb-6 pb-6 border-b">
-                 <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Deal Summary</h2>
+                 <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Deal Summary</h2>
                  <div class="space-y-2 text-neutral-dark text-sm">
                      <p><strong>Deal ID:</strong> <span id="deal-id" class="font-mono text-xs">[Loading...]</span></p>
                      <p><strong>Description:</strong> <span id="deal-description">[Loading...]</span></p>
-                     <p><strong>Amount:</strong> <span class="font-semibold">₹<span id="deal-amount">[Loading...]</span> INR</span></p>
+                     <p><strong>Base Amount:</strong> ₹<span id="deal-base-amount">[...]</span> INR</p>
+                     <p><strong>Buyer Fee (1%):</strong> ₹<span id="deal-buyer-fee">[...]</span></p>
+                     <p><strong>Seller Fee (1%):</strong> ₹<span id="deal-seller-fee">[...]</span></p>
+                     <hr class="my-1 border-gray-200">
+                     <p><strong>Total Buyer Pays:</strong> <span class="font-semibold">₹<span id="deal-buyer-pays">[...]</span> INR</span></p>
+                     <p><strong>Net Seller Receives:</strong> <span class="font-semibold">₹<span id="deal-seller-receives">[...]</span> INR</span></p>
+                     <hr class="my-1 border-gray-200">
                      <p><strong>Buyer:</strong> <span id="buyer-email">[Loading...]</span></p>
                      <p><strong>Seller:</strong> <span id="seller-email">[Loading...]</span></p>
                      <p><strong>Status:</strong> <span id="deal-status" class="status-badge">[Loading...]</span></p>
                  </div>
             </div>
              <div id="action-area">
-                 <h2 class="text-xl font-semibold text-neutral-darkest mb-4">Next Steps</h2>
-                 <div id="action-content" class="p-4 bg-gray-50 rounded-md text-center">
+                 <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Next Steps</h2>
+                 <div id="action-content" class="p-4 bg-gray-50 rounded-md text-center text-sm sm:text-base">
                      <p class="text-neutral">[Loading actions...]</p>
                  </div>
              </div>
@@ -70,8 +76,8 @@
         </div>
     </main>
 
-    <footer class="bg-neutral-darkest text-neutral-light mt-16">
-         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+    <footer class="bg-neutral-darkest text-neutral-light">
+         <div class="container mx-auto px-4 sm:px-6 py-8 text-center text-neutral text-sm">
              &copy; <span id="current-year"></span> SecureSwap. All rights reserved. |
              <a href="privacy.html" class="hover:text-white">Privacy Policy</a> |
              <a href="terms.html" class="hover:text-white">Terms of Service</a>
@@ -84,7 +90,7 @@
         // Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { firebaseConfig, razorpayKeyId } from './js/firebase-config.js'; // Ensure razorpayKeyId is exported
 
         // Initialize Firebase
@@ -94,14 +100,12 @@
             auth = getAuth(app);
             db = getFirestore(app);
             console.log("Firebase Initialized for Transaction Progress");
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            setPageStatus('error', "Error loading application services.");
-        }
+        } catch (error) { console.error("Firebase initialization failed:", error); setPageStatus('error', "Error loading application services."); }
 
         // --- DOM Elements ---
         let userEmailSpan, logoutButton, dashboardLink, loginLink, errorMessageDiv, progressContent,
-            dealIdSpan, dealDescriptionSpan, dealAmountSpan, buyerEmailSpan, sellerEmailSpan, dealStatusSpan,
+            dealIdSpan, dealDescriptionSpan, dealBaseAmountSpan, dealBuyerFeeSpan, dealSellerFeeSpan,
+            dealBuyerPaysSpan, dealSellerReceivesSpan, buyerEmailSpan, sellerEmailSpan, dealStatusSpan,
             actionArea, actionContent, actionMessageDiv;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -114,7 +118,12 @@
             progressContent = document.getElementById('progress-content');
             dealIdSpan = document.getElementById('deal-id');
             dealDescriptionSpan = document.getElementById('deal-description');
-            dealAmountSpan = document.getElementById('deal-amount');
+            dealBaseAmountSpan = document.getElementById('deal-base-amount');
+            dealBuyerFeeSpan = document.getElementById('deal-buyer-fee');
+            dealSellerFeeSpan = document.getElementById('deal-seller-fee');
+            // dealPlatformFeeSpan = document.getElementById('deal-platform-fee'); // Optional span
+            dealBuyerPaysSpan = document.getElementById('deal-buyer-pays');
+            dealSellerReceivesSpan = document.getElementById('deal-seller-receives');
             buyerEmailSpan = document.getElementById('buyer-email');
             sellerEmailSpan = document.getElementById('seller-email');
             dealStatusSpan = document.getElementById('deal-status');
@@ -129,10 +138,8 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             dealId = urlParams.get('dealId');
-            if (!dealId) {
-                setPageStatus('error', "No Deal ID provided in the URL.");
-            }
-            // Initial data fetch is triggered by onAuthStateChanged below
+            if (!dealId) { setPageStatus('error', "No Deal ID provided in the URL."); }
+            // Auth check triggers fetch
         });
 
         // --- Helper: Set Page Status & Message ---
@@ -176,101 +183,84 @@
         // --- Fetch and Display Transaction Data & Actions ---
         async function fetchAndDisplayTransaction() {
              if (!dealId || !db || !currentUser) return;
-            setPageStatus('loading');
-            try {
-                const dealDocRef = doc(db, "deals", dealId);
-                const dealDocSnap = await getDoc(dealDocRef);
-                if (dealDocSnap.exists()) {
-                    dealData = dealDocSnap.data();
-                    const isCreator = dealData.creatorUid === currentUser.uid;
-                    const isOtherParty = dealData.otherPartyEmail === currentUser.email;
-                    const isBuyer = dealData.buyerUid === currentUser.uid;
-                    const isSeller = dealData.sellerUid === currentUser.uid;
-                    const isUserInvolved = isCreator || isOtherParty || isBuyer || isSeller;
+             setPageStatus('loading');
+             try {
+                 const dealDocRef = doc(db, "deals", dealId);
+                 const dealDocSnap = await getDoc(dealDocRef);
+                 if (dealDocSnap.exists()) {
+                     dealData = dealDocSnap.data();
+                     // Auth checks...
+                     const isCreator = dealData.creatorUid === currentUser.uid; const isOtherParty = dealData.otherPartyEmail === currentUser.email; const isBuyer = dealData.buyerUid === currentUser.uid; const isSeller = dealData.sellerUid === currentUser.uid; const isUserInvolved = isCreator || isOtherParty || isBuyer || isSeller;
+                     if (!isUserInvolved && !['rejected', 'cancelled', 'completed'].includes(dealData.status)) { setPageStatus('unauthorized', "Not authorized."); return; }
+                     if (dealData.status === 'pending_confirmation' && isOtherParty) { window.location.href = `deal-confirmation.html?dealId=${dealId}`; return; }
 
-                    if (!isUserInvolved && !['rejected', 'cancelled', 'completed'].includes(dealData.status)) {
-                        setPageStatus('unauthorized', "You are not authorized to view this transaction."); return;
-                    }
-                    if (dealData.status === 'pending_confirmation' && isOtherParty) {
-                         window.location.href = `deal-confirmation.html?dealId=${dealId}`; return;
-                    }
-
-                    userRole = isBuyer ? 'Buyer' : isSeller ? 'Seller' : null; // Role is relevant after confirmation
-                    displayTransactionDetails(dealData);
-                    updateActionArea(dealData.status);
-                    setPageStatus('loaded');
-                } else { setPageStatus('not-found', "Transaction not found."); }
-            } catch (error) { console.error("Error getting transaction document:", error); setPageStatus('error', "Error fetching transaction details."); }
+                     userRole = isBuyer ? 'Buyer' : isSeller ? 'Seller' : null;
+                     displayTransactionDetails(dealData); // Update display
+                     updateActionArea(dealData.status); // Update actions
+                     setPageStatus('loaded');
+                 } else { setPageStatus('not-found', "Transaction not found."); }
+             } catch (error) { console.error("Error getting transaction document:", error); setPageStatus('error', "Error fetching transaction details."); }
         }
 
-        // --- Helper to display transaction details ---
+        // --- Helper to display transaction details (UPDATED for Fees) ---
         function displayTransactionDetails(data) {
              if(dealIdSpan) dealIdSpan.textContent = dealId;
              if(dealDescriptionSpan) dealDescriptionSpan.textContent = data.description || 'N/A';
-             if(dealAmountSpan) dealAmountSpan.textContent = data.amount?.toFixed(2) || 'N/A';
+             // Display all amounts safely
+             const baseAmount = data.baseAmount ?? 0; const buyerFee = data.buyerFee ?? 0; const sellerFee = data.sellerFee ?? 0; const platformFee = data.platformFee ?? (buyerFee + sellerFee); const amountBuyerPays = data.amountBuyerPays ?? (baseAmount + buyerFee); const amountSellerReceives = data.amountSellerReceives ?? (baseAmount - sellerFee);
+             if(dealBaseAmountSpan) dealBaseAmountSpan.textContent = baseAmount.toFixed(2);
+             if(dealBuyerFeeSpan) dealBuyerFeeSpan.textContent = buyerFee.toFixed(2);
+             if(dealSellerFeeSpan) dealSellerFeeSpan.textContent = sellerFee.toFixed(2);
+             if(dealBuyerPaysSpan) dealBuyerPaysSpan.textContent = amountBuyerPays.toFixed(2);
+             if(dealSellerReceivesSpan) dealSellerReceivesSpan.textContent = amountSellerReceives.toFixed(2);
+
              if(buyerEmailSpan) buyerEmailSpan.textContent = data.buyerEmail || '[Pending Confirmation]';
              if(sellerEmailSpan) sellerEmailSpan.textContent = data.sellerEmail || '[Pending Confirmation]';
-             if(dealStatusSpan) {
-                 const statusText = data.status.replace(/_/g, ' ');
-                 dealStatusSpan.textContent = statusText;
-                 dealStatusSpan.className = `status-badge status-${data.status}`;
-             }
+             if(dealStatusSpan) { const statusText = data.status.replace(/_/g, ' '); dealStatusSpan.textContent = statusText; dealStatusSpan.className = `status-badge status-${data.status}`; }
         }
 
-        // --- Update Action Area based on Status and Role ---
+        // --- Update Action Area based on Status and Role (UPDATED Pay Button Text) ---
         function updateActionArea(status) {
             if (!actionContent || !currentUser || !dealData) return;
             const currentUserIsBuyer = dealData.buyerUid === currentUser.uid;
             const currentUserIsSeller = dealData.sellerUid === currentUser.uid;
-            const currentUserIsCreator = dealData.creatorUid === currentUser.uid;
-
-            actionContent.innerHTML = ''; // Clear previous content
+            actionContent.innerHTML = '';
             let confirmDeliveryBtn, confirmReceiptBtn, payButton;
 
             switch (status) {
                 case 'pending_payment':
                     if (currentUserIsBuyer) {
-                        actionContent.innerHTML = `<p class="mb-4 text-neutral">Please proceed with the payment of ₹${dealData.amount.toFixed(2)}.</p><button id="pay-button" class="bg-green-600 text-white px-8 py-2 rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50">Pay Now with Razorpay</button>`;
+                        // Show the amount the buyer actually pays from dealData
+                        const amountToPay = (dealData.amountBuyerPays ?? 0).toFixed(2);
+                        actionContent.innerHTML = `<p class="mb-4 text-neutral">Please proceed with the payment of ₹${amountToPay}.</p><button id="pay-button" class="bg-green-600 text-white px-8 py-2 rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50 text-base sm:text-lg">Pay ₹${amountToPay} Now</button>`;
                         payButton = document.getElementById('pay-button');
                         if (payButton) payButton.addEventListener('click', handlePayment);
-                    } else if (currentUserIsSeller) {
-                        actionContent.innerHTML = `<p class="text-neutral">Waiting for buyer (${dealData.buyerEmail}) to pay.</p>`;
-                    } else { actionContent.innerHTML = `<p class="text-neutral">Waiting for buyer to pay.</p>`; }
+                    } else { actionContent.innerHTML = `<p class="text-neutral">Waiting for buyer (${dealData.buyerEmail || 'N/A'}) to pay.</p>`; }
                     break;
-
                 case 'payment_received':
                      if (currentUserIsSeller) {
-                        actionContent.innerHTML = `<p class="mb-4 text-neutral">Payment received! Please deliver the item/service to ${dealData.buyerEmail}.</p><button id="confirm-delivery-button" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50">Confirm Delivery / Shipment</button><p class="text-xs text-neutral mt-2">(Click once delivered)</p>`;
+                        actionContent.innerHTML = `<p class="mb-4 text-neutral">Payment received! Please deliver the item/service to ${dealData.buyerEmail || 'N/A'}.</p><button id="confirm-delivery-button" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50 text-sm sm:text-base">Confirm Delivery / Shipment</button><p class="text-xs text-neutral mt-2">(Click once delivered)</p>`;
                         confirmDeliveryBtn = document.getElementById('confirm-delivery-button');
                         if(confirmDeliveryBtn) confirmDeliveryBtn.addEventListener('click', handleConfirmDelivery);
-                    } else if (currentUserIsBuyer) {
-                        actionContent.innerHTML = `<p class="text-neutral">Payment successful! Waiting for seller (${dealData.sellerEmail}) to deliver the item/service.</p>`;
-                    } else { actionContent.innerHTML = `<p class="text-neutral">Payment received. Waiting for seller to deliver.</p>`; }
+                    } else { actionContent.innerHTML = `<p class="text-neutral">Payment successful! Waiting for seller (${dealData.sellerEmail || 'N/A'}) to deliver.</p>`; }
                     break;
-
                 case 'item_shipped':
                      if (currentUserIsBuyer) {
-                         actionContent.innerHTML = `<p class="mb-4 text-neutral">The seller (${dealData.sellerEmail}) has marked the item as delivered/shipped. Please confirm once you have received it satisfactorily.</p><button id="confirm-receipt-button" class="bg-secondary text-white px-6 py-2 rounded-md hover:bg-secondary-dark transition duration-300 disabled:opacity-50">Confirm Receipt</button>`;
+                         actionContent.innerHTML = `<p class="mb-4 text-neutral">Seller (${dealData.sellerEmail || 'N/A'}) marked item as shipped/delivered. Please confirm receipt.</p><button id="confirm-receipt-button" class="bg-secondary text-white px-6 py-2 rounded-md hover:bg-secondary-dark transition duration-300 disabled:opacity-50 text-sm sm:text-base">Confirm Receipt</button>`;
                          confirmReceiptBtn = document.getElementById('confirm-receipt-button');
-                         if(confirmReceiptBtn) confirmReceiptBtn.addEventListener('click', handleConfirmReceipt); // Listener added here
-                     } else if (currentUserIsSeller) {
-                         actionContent.innerHTML = `<p class="text-neutral">You have confirmed delivery. Waiting for the buyer (${dealData.buyerEmail}) to confirm receipt.</p>`;
-                     } else { actionContent.innerHTML = `<p class="text-neutral">Item shipped. Waiting for buyer to confirm receipt.</p>`; }
+                         if(confirmReceiptBtn) confirmReceiptBtn.addEventListener('click', handleConfirmReceipt);
+                     } else { actionContent.innerHTML = `<p class="text-neutral">Delivery confirmed. Waiting for buyer (${dealData.buyerEmail || 'N/A'}) to confirm receipt.</p>`; }
                      break;
-
                 case 'completed': actionContent.innerHTML = `<p class="text-green-600 font-medium">This transaction is complete.</p>`; break;
                 case 'rejected': case 'cancelled': actionContent.innerHTML = `<p class="text-red-600 font-medium">This transaction was ${status}.</p>`; break;
-                case 'pending_confirmation':
-                     if (currentUserIsCreator) { actionContent.innerHTML = `<p class="text-neutral">Waiting for ${dealData.otherPartyEmail || 'other party'} to confirm the deal.</p>`; }
-                     else { actionContent.innerHTML = `<p class="text-neutral">This deal is waiting for confirmation.</p>`; }
-                     break;
+                case 'pending_confirmation': actionContent.innerHTML = `<p class="text-neutral">Waiting for ${dealData.otherPartyEmail || 'other party'} to confirm.</p>`; break;
                 default: actionContent.innerHTML = `<p class="text-neutral">Current status: ${status ? status.replace(/_/g, ' ') : 'Unknown'}</p>`;
             }
         }
 
-        // --- Handle Payment Initiation (Calls Cloud Function) ---
+        // --- Handle Payment Initiation (UPDATED Amount Sent to Function) ---
         async function handlePayment() {
-            if (!dealData || !currentUser || !razorpayKeyId || razorpayKeyId === "YOUR_RAZORPAY_TEST_KEY_ID" || !dealId) { showActionMessage("Payment configuration error or missing data.", true); return; }
+            if (!dealData || !currentUser || !razorpayKeyId || !dealId) { showActionMessage("Cannot initiate payment. Missing data or config.", true); return; }
             const payButton = document.getElementById('pay-button');
             if(payButton) payButton.disabled = true;
             showActionMessage("Creating payment order...", false);
@@ -280,61 +270,44 @@
 
             let orderResponse;
             try {
-                 const response = await fetch(createOrderUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: dealData.amount * 100, currency: dealData.currency || "INR", receipt: dealId }) });
-                 if (!response.ok) { let errorData = {}; try { errorData = await response.json(); } catch (e) {} throw new Error(`Failed to create order: ${response.statusText} - ${errorData.error || 'Unknown function error'}`); }
+                 // ** Send amountBuyerPays (in paise) to the function **
+                 const amountInPaise = Math.round((dealData.amountBuyerPays ?? 0) * 100); // Use nullish coalescing
+                 if (amountInPaise <= 0) throw new Error("Invalid amount for payment."); // Prevent paying 0
+
+                 console.log(`Requesting order for amount: ${amountInPaise} paise`);
+                 const response = await fetch(createOrderUrl, {
+                     method: 'POST', headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ amount: amountInPaise, currency: dealData.currency || "INR", receipt: dealId })
+                 });
+                 if (!response.ok) { let errorData = {}; try { errorData = await response.json(); } catch (e) {} throw new Error(`Order creation failed: ${errorData.error || response.statusText}`); }
                  orderResponse = await response.json();
-                 if (!orderResponse || !orderResponse.orderId) throw new Error("Invalid order response from function.");
+                 if (!orderResponse || !orderResponse.orderId) throw new Error("Invalid order response.");
             } catch (error) { console.error("Error calling createRazorpayOrder function:", error); showActionMessage(`Error creating payment order: ${error.message}`, true); if(payButton) payButton.disabled = false; return; }
 
             // Prepare Razorpay options
             const options = {
-                "key": razorpayKeyId, "amount": orderResponse.amount, "currency": orderResponse.currency, "name": "SecureSwap Escrow", "description": `Deal: ${dealData.description.substring(0,50)}...`,
-                "order_id": orderResponse.orderId, // Use server-generated order_id
-                // --- UPDATED HANDLER to call verification function ---
+                "key": razorpayKeyId, "amount": orderResponse.amount, "currency": orderResponse.currency, "name": "SecureSwap Escrow", "description": `Deal ID: ${dealId}`, // Use Deal ID in description
+                "order_id": orderResponse.orderId,
                 "handler": async function (response){
-                    console.log("Razorpay payment attempt response:", response);
-                    showActionMessage("Payment successful! Verifying...", false);
-                    if(payButton) payButton.disabled = true; // Keep disabled
-
-                    // ** REPLACE WITH YOUR ACTUAL FUNCTION URL **
-                    const verifyPaymentUrl = "https://us-central1-swap-prod-6b04e.cloudfunctions.net/verifyRazorpayPayment"; // <<< IMPORTANT
-
-                    try {
-                        console.log("Calling verifyRazorpayPayment function at:", verifyPaymentUrl);
-                        const verificationResponse = await fetch(verifyPaymentUrl, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_signature: response.razorpay_signature,
-                                dealId: dealId
-                            })
-                        });
-                        const verificationResult = await verificationResponse.json();
-                        if (!verificationResponse.ok) throw new Error(verificationResult.error || `Verification failed: ${verificationResponse.status}`);
-
-                        // Handle SUCCESSFUL verification
-                        console.log("Payment verification successful:", verificationResult);
-                        dealData.status = 'payment_received'; // Update local data
-                        displayTransactionDetails(dealData); updateActionArea(dealData.status);
-                        showActionMessage("Payment verified! Waiting for seller.", false);
-
-                    } catch (error) {
-                        // Handle verification FAILURE
-                        console.error("Payment verification failed:", error);
-                        showActionMessage(`Payment Verification Failed: ${error.message}. Please contact support if payment was deducted.`, true);
-                        // Keep button disabled after failed verification attempt
-                    }
-                }, // --- END OF UPDATED HANDLER ---
-                 "prefill": { "email": currentUser.email, "name": currentUser.displayName || "" }, "notes": { "deal_id": dealId, "user_id": currentUser.uid, "buyer_email": dealData.buyerEmail, "seller_email": dealData.sellerEmail }, "theme": { "color": "#3B82F6" }
+                    // Call verification function
+                     console.log("Razorpay payment attempt response:", response); showActionMessage("Payment successful! Verifying...", false); if(payButton) payButton.disabled = true;
+                     // ** REPLACE WITH YOUR ACTUAL FUNCTION URL **
+                     const verifyPaymentUrl = "https://us-central1-swap-prod-6b04e.cloudfunctions.net/verifyRazorpayPayment"; // <<< IMPORTANT
+                     try {
+                         const verificationResponse = await fetch(verifyPaymentUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, dealId: dealId }) });
+                         const verificationResult = await verificationResponse.json();
+                         if (!verificationResponse.ok) throw new Error(verificationResult.error || `Verification failed: ${verificationResponse.status}`);
+                         // Handle SUCCESSFUL verification
+                         dealData.status = 'payment_received'; displayTransactionDetails(dealData); updateActionArea(dealData.status); showActionMessage("Payment verified! Waiting for seller.", false);
+                     } catch (error) { console.error("Payment verification failed:", error); showActionMessage(`Payment Verification Failed: ${error.message}. Contact support if payment was deducted.`, true); }
+                },
+                 "prefill": { "email": currentUser.email, "name": "" }, // Prefill email, name optional
+                 "notes": { "deal_id": dealId, "user_id": currentUser.uid },
+                 "theme": { "color": "#3B82F6" }
             };
-            console.log("Razorpay Options:", JSON.stringify(options, null, 2));
             // Open Razorpay Checkout
-             try {
-                const rzp = new Razorpay(options);
-                rzp.on('payment.failed', function (response){ console.error("Razorpay payment failed:", response.error); showActionMessage(`Payment Failed: ${response.error.description || 'Unknown Error'} (Code: ${response.error.code || 'N/A'})`, true); if(payButton) payButton.disabled = false; });
-                rzp.open();
-             } catch (rzpError) { console.error("Error opening Razorpay checkout:", rzpError); showActionMessage("Could not initiate payment.", true); if(payButton) payButton.disabled = false; }
+             try { const rzp = new Razorpay(options); rzp.on('payment.failed', function (response){ console.error("Razorpay payment failed:", response.error); showActionMessage(`Payment Failed: ${response.error.description || 'Unknown Error'}`, true); if(payButton) payButton.disabled = false; }); rzp.open(); }
+             catch (rzpError) { console.error("Error opening Razorpay checkout:", rzpError); showActionMessage("Could not initiate payment.", true); if(payButton) payButton.disabled = false; }
         }
 
         // --- Handle Confirm Delivery (Seller Action) ---
