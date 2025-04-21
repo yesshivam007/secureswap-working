@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+</head>
+<body class="bg-neutral-lightest">
+
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+            <div> <a href="/" class="text-neutral hover:text-primary">&larr; Back to Home</a> </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 md:py-16 max-w-3xl">
+        <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-neutral-darkest mb-6 border-b pb-4">Contact Us</h1>
+
+            <p class="text-neutral mb-6">Have questions or need assistance? Fill out the form below or email us directly at <a href="mailto:support@secureswap.in" class="text-primary hover:underline">support@secureswap.in</a>.</p>
+
+            <form id="contact-form" class="space-y-6">
+                 <div>
+                    <label for="contact-name" class="block text-sm font-medium text-neutral-dark">Your Name</label>
+                    <input type="text" id="contact-name" name="name" required autocomplete="name"
+                           class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+                 <div>
+                    <label for="contact-email" class="block text-sm font-medium text-neutral-dark">Your Email</label>
+                    <input type="email" id="contact-email" name="email" required autocomplete="email"
+                           class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+                 <div>
+                    <label for="contact-subject" class="block text-sm font-medium text-neutral-dark">Subject</label>
+                    <input type="text" id="contact-subject" name="subject" required
+                           class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                </div>
+                 <div>
+                    <label for="contact-message" class="block text-sm font-medium text-neutral-dark">Message</label>
+                    <textarea id="contact-message" name="message" rows="5" required
+                              class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"></textarea>
+                </div>
+
+                 <div id="contact-message-response" class="text-sm hidden"></div>
+
+                 <div>
+                    <button type="submit" id="submit-contact-button"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 disabled:opacity-50">
+                        Send Message
+                    </button>
+                </div>
+            </form>
+             <script>
+                // Basic form handling - prevents actual submission and shows a message
+                const contactForm = document.getElementById('contact-form');
+                const responseDiv = document.getElementById('contact-message-response');
+                const submitButton = document.getElementById('submit-contact-button');
+
+                if (contactForm && responseDiv && submitButton) {
+                    contactForm.addEventListener('submit', (e) => {
+                        e.preventDefault(); // Prevent actual form submission
+                        submitButton.disabled = true;
+                        responseDiv.textContent = 'Thank you for your message! (Note: This form is currently for display only). Email us at support@secureswap.in for assistance.';
+                        responseDiv.className = 'text-sm p-3 bg-green-50 text-green-700 rounded-md'; // Show success style
+                        responseDiv.classList.remove('hidden');
+                        // contactForm.reset(); // Optionally reset form
+                    });
+                }
+             </script>
+
+        </div>
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-8 text-center text-neutral">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved.
+        </div>
+    </footer>
+     <script> document.getElementById('current-year').textContent = new Date().getFullYear(); </script>
+</body>
+</html>
