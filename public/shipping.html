@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Policy - SecureSwap</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <style>
+        /* Add specific styles if needed, otherwise rely on Tailwind */
+        .prose h2 { margin-top: 1.5em; margin-bottom: 0.8em; }
+        .prose p, .prose ul { margin-bottom: 1em; }
+    </style>
+</head>
+<body class="bg-neutral-lightest flex flex-col min-h-screen">
+
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div>
+                <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap</a>
+            </div>
+            <div>
+                <a href="/" class="text-sm text-neutral hover:text-primary transition duration-200">&larr; Back to Home</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 py-12 md:py-16 max-w-4xl flex-grow">
+        <div class="bg-white p-6 sm:p-8 md:p-10 rounded-lg shadow-lg">
+            <h1 class="text-2xl sm:text-3xl font-bold text-neutral-darkest mb-6 border-b pb-4">Shipping & Delivery Policy</h1>
+
+            <div class="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-neutral-dark">
+                <p class="lead">Last updated: April 26, 2025</p>
+
+                <p>This Shipping & Delivery Policy outlines the general guidelines and responsibilities for users engaging in transactions involving the shipment of physical goods through the SecureSwap platform. Please note that SecureSwap acts solely as a facilitator and escrow service provider; we do not handle, manage, or take responsibility for the actual shipping process.</p>
+
+                <h2>1. Seller's Responsibilities</h2>
+                <ul>
+                    <li><strong>Accurate Description:</strong> The Seller is responsible for accurately describing the item being sold, including its condition.</li>
+                    <li><strong>Packaging:</strong> The Seller must package the item appropriately to prevent damage during transit.</li>
+                    <li><strong>Shipping Method & Cost:</strong> Unless otherwise agreed upon directly between the Buyer and Seller, the Seller is typically responsible for choosing a reliable shipping method and covering the initial shipping costs. These costs should ideally be factored into the agreed-upon deal amount. Any deviation must be clearly communicated and agreed upon by both parties before the deal is finalized.</li>
+                    <li><strong>Timely Shipment:</strong> The Seller should ship the item promptly after receiving notification from SecureSwap that the Buyer's payment has been secured in escrow. Agreed-upon shipping timelines should be adhered to.</li>
+                    <li><strong>Proof of Shipment/Tracking:</strong> It is highly recommended that the Seller uses a shipping method that provides tracking information and proof of shipment. The Seller should provide this tracking information to the Buyer (potentially through a future SecureSwap feature or direct communication agreed upon by both parties).</li>
+                    <li><strong>Insurance:</strong> The Seller may choose to insure the shipment at their discretion and cost.</li>
+                </ul>
+
+                <h2>2. Buyer's Responsibilities</h2>
+                <ul>
+                    <li><strong>Accurate Address:</strong> The Buyer must provide a complete and accurate shipping address during the deal process or as otherwise agreed with the Seller. SecureSwap is not responsible for shipments sent to incorrect addresses provided by the Buyer.</li>
+                    <li><strong>Receiving Shipment:</strong> The Buyer is responsible for being available to receive the shipment or making arrangements for its receipt according to the carrier's terms.</li>
+                    <li><strong>Inspection & Confirmation:</strong> Upon receiving the item, the Buyer should inspect it promptly to ensure it matches the description. The Buyer must then log in to SecureSwap and confirm receipt within a reasonable timeframe (e.g., 48-72 hours, specific timeframe may be defined in Terms of Service) to allow the release of funds to the Seller.</li>
+                    <li><strong>Raising Disputes:</strong> If the item is not received or is significantly not as described, the Buyer must raise a dispute through the SecureSwap platform within the specified timeframe, providing necessary evidence.</li>
+                </ul>
+
+                <h2>3. SecureSwap's Role</h2>
+                <ul>
+                    <li>SecureSwap acts as a neutral third party, holding the Buyer's payment in escrow.</li>
+                    <li>We notify the Seller when payment is secured, signaling them to ship the item.</li>
+                    <li>We release the funds to the Seller only after the Buyer confirms receipt or a dispute is resolved.</li>
+                    <li>SecureSwap does **not** handle physical logistics, shipping insurance, customs duties, or delivery guarantees. These aspects are the responsibility of the Buyer and Seller as outlined above or as agreed between them.</li>
+                </ul>
+
+                <h2>4. Delivery Timelines</h2>
+                <p>Estimated delivery times depend on the shipping method chosen by the Seller, carrier delays, and the locations of the Buyer and Seller. SecureSwap does not guarantee delivery timelines. Users should communicate reasonable expectations directly.</p>
+
+                <h2>5. Disputes Related to Shipping</h2>
+                <p>Disputes arising from shipping issues (e.g., item damaged in transit, item lost, non-delivery) will be handled according to our Dispute Resolution Policy (refer to Terms of Service). Providing tracking information and proof of shipment/receipt will be crucial in resolving such disputes.</p>
+
+                <h2>6. Contact</h2>
+                <p>For questions specifically about the SecureSwap platform or escrow process, contact support@secureswap.in. For questions about a specific shipment, please contact the Seller or the shipping carrier directly.</p>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-neutral-darkest text-neutral-light">
+         <div class="container mx-auto px-4 sm:px-6 py-8 text-center text-neutral text-sm">
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved.
+        </div>
+    </footer>
+     <script> document.getElementById('current-year').textContent = new Date().getFullYear(); </script>
+     <script src="js/main.js"></script>
+</body>
+</html>
