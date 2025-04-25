@@ -14,8 +14,8 @@ export const firebaseConfig = {
     measurementId: "G-53N902FZ2X"
   };
   
-  export const razorpayKeyId = "rzp_test_4wLqwbdfzDaKE0";
-  export const razorpayKeySecret = "DpPC6K2NwMn17gXMcrWpyCio"
+  export const razorpayKeyId = "rzp_live_gvhW9kQ4I7E5qW";
+  export const razorpayKeySecret = "bLKCCgctMEkTsxtn0he1meDS"
 
   // NOTE: Keep this file safe and potentially use environment variables
   // for production builds if deploying outside Firebase Hosting's automatic config handling.
