@@ -25,9 +25,24 @@
 <body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-         <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-            <div> <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap [Admin]</a> </div>
-            <div class="flex items-center space-x-3 sm:space-x-4">
+         <nav class="container mx-auto px-4 sm:px-6 py-1 flex justify-between items-center">
+            <div>
+                <a href="/" class="flex items-center">
+                  <!-- logo icon -->
+                  <img
+                    src="images/logo.png"
+                    alt="SecureSwap logo icon"
+                    class="h-16 w-16 mr-auto"
+                  />
+                  <!-- letterform logo -->
+                  <img
+                    src="images/letterform-1.png"
+                    alt="SecureSwap"
+                    class="h-16 w-auto"
+                  /> Admin
+                </a>
+              </div>
+            <div class="flex items-center space-x-4 sm:space-x-4">
                  <a href="admin-users.html" class="text-sm text-neutral hover:text-primary transition duration-200">User Verification</a>
                  <span class="text-gray-300">|</span>
                  <span id="user-email" class="text-neutral text-xs sm:text-sm hidden truncate max-w-[150px]"></span>

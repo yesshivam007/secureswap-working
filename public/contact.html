@@ -13,15 +13,30 @@
 <body class="bg-neutral-lightest">
 
     <header class="bg-white shadow-sm">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+        <nav class="container mx-auto px-6 py-1 flex justify-between items-center">
+            <div>
+                <a href="/" class="flex items-center">
+                  <!-- logo icon -->
+                  <img
+                    src="images/logo.png"
+                    alt="SecureSwap logo icon"
+                    class="h-16 w-16 mr-auto"
+                  />
+                  <!-- letterform logo -->
+                  <img
+                    src="images/letterform-1.png"
+                    alt="SecureSwap"
+                    class="h-16 w-auto"
+                  />
+                </a>
+              </div>
             <div> <a href="/" class="text-neutral hover:text-primary">&larr; Back to Home</a> </div>
         </nav>
     </header>
 
     <main class="container mx-auto px-6 py-12 md:py-16 max-w-3xl">
         <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg">
-            <h1 class="text-3xl font-bold text-neutral-darkest mb-6 border-b pb-4">Contact Us</h1>
+            <h1 class="text-3xl font-bold text-neutral-darkest mb-6 border-b pb-4 py-3">Contact Us</h1>
 
             <p class="text-neutral mb-6">Have questions or need assistance? Fill out the form below or email us directly at <a href="mailto:support@secureswap.in" class="text-primary hover:underline">support@secureswap.in</a>.</p>
 
@@ -66,8 +81,8 @@
                     contactForm.addEventListener('submit', (e) => {
                         e.preventDefault(); // Prevent actual form submission
                         submitButton.disabled = true;
-                        responseDiv.textContent = 'Thank you for your message! (Note: This form is currently for display only). Email us at support@secureswap.in for assistance.';
-                        responseDiv.className = 'text-sm p-3 bg-green-50 text-green-700 rounded-md'; // Show success style
+                        responseDiv.textContent = 'We are facing technical difficulties in this contact form, please email us at support@secureswap.in for assistance.';
+                        responseDiv.className = 'text-sm p-3 bg-red-50 text-red-700 rounded-md'; // Show success style
                         responseDiv.classList.remove('hidden');
                         // contactForm.reset(); // Optionally reset form
                     });
@@ -79,7 +94,7 @@
 
     <footer class="bg-neutral-darkest text-neutral-light mt-16">
          <div class="container mx-auto px-6 py-8 text-center text-neutral">
-             &copy; <span id="current-year"></span> SecureSwap. All rights reserved.
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. Built with ❤️ in India
         </div>
     </footer>
      <script> document.getElementById('current-year').textContent = new Date().getFullYear(); </script>

@@ -33,12 +33,27 @@
 <body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-         <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-            <div> <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
-            <div class="flex items-center space-x-2 sm:space-x-4">
+         <nav class="container mx-auto px-4 sm:px-6 py-1 flex justify-between items-center">
+            <div>
+                <a href="/" class="flex items-center">
+                  <!-- logo icon -->
+                  <img
+                    src="images/logo.png"
+                    alt="SecureSwap logo icon"
+                    class="h-16 w-16 mr-auto"
+                  />
+                  <!-- letterform logo -->
+                  <img
+                    src="images/letterform-1.png"
+                    alt="SecureSwap"
+                    class="h-16 w-auto"
+                  />
+                </a>
+              </div>
+            <div class="flex items-center space-x-4 sm:space-x-8">
                  <a href="dashboard.html" class="text-neutral hover:text-primary text-xs sm:text-sm" id="dashboard-link"> &larr; Dashboard</a>
                  <span id="user-email" class="text-neutral text-xs sm:text-sm hidden truncate max-w-[100px] sm:max-w-[150px]"></span>
-                <button id="logout-button" class="bg-red-500 text-white px-2 sm:px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
+                <button id="logout-button" class="bg-red-500 text-white px-4 sm:px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 text-xs hidden"> Logout </button>
                  <a href="login.html" class="text-primary hover:underline text-xs sm:text-sm hidden" id="login-link">Login to View</a>
             </div>
         </nav>

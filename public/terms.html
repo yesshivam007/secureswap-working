@@ -13,27 +13,42 @@
 <body class="bg-neutral-lightest">
 
     <header class="bg-white shadow-sm">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div> <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a> </div>
+        <nav class="container mx-auto px-6 py-1 flex justify-between items-center">
+            <div>
+                <a href="/" class="flex items-center">
+                  <!-- logo icon -->
+                  <img
+                    src="images/logo.png"
+                    alt="SecureSwap logo icon"
+                    class="h-16 w-16 mr-auto"
+                  />
+                  <!-- letterform logo -->
+                  <img
+                    src="images/letterform-1.png"
+                    alt="SecureSwap"
+                    class="h-16 w-auto"
+                  />
+                </a>
+              </div>
             <div> <a href="/" class="text-neutral hover:text-primary">&larr; Back to Home</a> </div>
         </nav>
     </header>
 
     <main class="container mx-auto px-6 py-12 md:py-16 max-w-4xl">
         <div class="bg-white p-8 md:p-10 rounded-lg shadow-lg">
-            <h1 class="text-3xl font-bold text-neutral-darkest mb-6 border-b pb-4">Terms of Service</h1>
+            <h1 class="text-3xl font-bold text-neutral-darkest mb-6 border-b pb-4 py-3">Terms of Service</h1>
              <div class="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none text-neutral-dark">
                 <p class="lead">Last updated: April 20, 2025</p>
-
+                <br>
                 <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the https://secureswap.in website (the "Service") operated by SecureSwap Pvt. Ltd. ("us", "we", or "our").</p>
                 <p>Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users and others who access or use the Service.</p>
                 <p>By accessing or using the Service you agree to be bound by these Terms. If you disagree with any part of the terms then you may not access the Service.</p>
-
+                <br>
                 <h2>1. Accounts</h2>
                 <p>When you create an account with us, you must provide us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.</p>
                 <p>You are responsible for safeguarding the password that you use to access the Service and for any activities or actions under your password, whether your password is with our Service or a third-party service.</p>
                 <p>You agree not to disclose your password to any third party. You must notify us immediately upon becoming aware of any breach of security or unauthorized use of your account.</p>
-
+                <br>
                 <h2>2. SecureSwap Service (Escrow)</h2>
                 <p>SecureSwap provides a service to facilitate secure transactions between users (Buyers and Sellers). By initiating or accepting a deal, you agree to the following process:</p>
                 <ul>
@@ -44,30 +59,31 @@
                     <li>SecureSwap will release the funds to the Seller (minus applicable fees) only after the Buyer confirms receipt, or following the resolution of a dispute according to our Dispute Resolution Policy.</li>
                 </ul>
                  <p>SecureSwap charges a service fee for facilitating the transaction. This fee will be clearly indicated during the deal creation/confirmation process.</p>
-
+                <br>
                 <h2>3. User Conduct</h2>
                 <p>You agree not to use the Service for any illegal or fraudulent activities...</p>
+                <br>
                 <h2>4. Verification (KYC/Bank Details)</h2>
                  <p>To ensure platform security and enable payouts, SecureSwap requires users (especially Sellers) to provide identification (KYC) and bank account details. You agree to provide accurate information. Verification is currently performed manually by SecureSwap admins and approval is at our discretion. We reserve the right to suspend or terminate accounts with unverified or fraudulent information.</p>
-
+                <br>
                  <h2>5. Intellectual Property</h2>
                 <p>The Service and its original content, features and functionality are and will remain the exclusive property of SecureSwap Pvt. Ltd. and its licensors...</p>
-
+                <br>
                 <h2>6. Links To Other Web Sites</h2>
                 <p>Our Service may contain links to third-party web sites or services that are not owned or controlled by SecureSwap Pvt. Ltd....</p>
-
+                <br>
                 <h2>7. Termination</h2>
                 <p>We may terminate or suspend access to our Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms...</p>
-
+                <br>
                 <h2>8. Limitation Of Liability</h2>
                  <p>In no event shall SecureSwap Pvt. Ltd., nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages...</p>
-
+                <br>
                 <h2>9. Governing Law</h2>
                 <p>These Terms shall be governed and construed in accordance with the laws of India, without regard to its conflict of law provisions...</p>
-
+                <br>
                 <h2>10. Changes</h2>
                 <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time...</p>
-
+                <br>
                 <h2>11. Contact Us</h2>
                 <p>If you have any questions about these Terms, please contact us at support@secureswap.in.</p>
 
@@ -77,7 +93,7 @@
 
     <footer class="bg-neutral-darkest text-neutral-light mt-16">
          <div class="container mx-auto px-6 py-8 text-center text-neutral">
-             &copy; <span id="current-year"></span> SecureSwap. All rights reserved.
+             &copy; <span id="current-year"></span> SecureSwap. All rights reserved. Built with ❤️ in India
         </div>
     </footer>
      <script> document.getElementById('current-year').textContent = new Date().getFullYear(); </script>
