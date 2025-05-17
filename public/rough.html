@@ -3,94 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Verification - Admin Panel - SecureSwap</title>
+    <title>SecureSwap - Trustworthy P2P Transactions</title>
     <link href="css/output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="images/favicon.png" type="image/png">
-     <style>
-        /* Styles for loading/error states, table, status, buttons */
-        body[data-status="loading"] #admin-content,
-        body[data-status="unauthorized"] #admin-content { display: none; }
-        body[data-status="loading"]::before { content: 'Loading Admin Panel...'; display: block; text-align: center; padding: 40px; font-size: 1.2em; color: #6B7280;}
-        #error-message { display: none; }
-        body[data-status="unauthorized"] #error-message { display: block; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e5e7eb; }
-        th { background-color: #f9fafb; font-weight: 600; font-size: 0.875rem; color: #374151;}
-        td { font-size: 0.875rem; color: #4b5563; vertical-align: middle;}
-        tr:hover { background-color: #f9fafb; }
-        .status-pending { color: #D97706; font-weight: 500; } /* Amber */
-        .status-verified { color: #059669; font-weight: 500; } /* Emerald */
-        .status-rejected { color: #DC2626; font-weight: 500; } /* Red */
-        .status-missing { color: #6B7280; font-style: italic; } /* Gray */
-        .action-btn { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: background-color 0.2s ease; margin-right: 4px; margin-bottom: 4px; display: inline-block;}
-        .btn-approve { background-color: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
-        .btn-approve:hover { background-color: #A7F3D0; }
-        .btn-reject { background-color: #FEE2E2; color: #991B1B; border-color: #FECACA; }
-        .btn-reject:hover { background-color: #FECACA; }
-        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        td:last-child { white-space: normal; } /* Allow actions to wrap */
-        .view-id-link { font-size: 0.75rem; color: #3B82F6; text-decoration: underline; margin-left: 5px; }
-        .view-id-link:hover { color: #2563EB; }
-     </style>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="icon" href="./images/favicon.png" type="image/png">
+    <style>
+        body { overflow-x: hidden; } /* Prevent horizontal scrollbar from AOS */
+        html { scroll-behavior: smooth; }
+        /* Ensure header elements align nicely */
+        #user-info-header, #auth-links { align-items: center; }
+        /* Ensure hidden elements are truly hidden */
+        .truly-hidden { display: none !important; }
+    </style>
 </head>
-<body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading">
+<body class="bg-neutral-lightest">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-         <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-            <div> <a href="/" class="text-xl sm:text-2xl font-bold text-primary-dark">SecureSwap [Admin]</a> </div>
-            <div class="flex items-center space-x-3 sm:space-x-4">
-                 <a href="admin-dashboard.html" class="text-sm text-neutral hover:text-primary transition duration-200">&larr; Dashboard</a>
-                 <span class="text-gray-300">|</span>
-                 <span id="user-email" class="text-neutral text-xs sm:text-sm hidden truncate max-w-[150px]"></span>
-                 <button id="logout-button" class="bg-red-500 text-white px-2 sm:px-3 py-1.5 rounded-md hover:bg-red-600 transition duration-300 text-xs flex-shrink-0 hidden"> Logout </button>
-                 <a href="login.html" class="text-primary hover:underline text-xs sm:text-sm hidden" id="login-link">Login</a>
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div>
+                <a href="/" class="text-2xl font-bold text-primary-dark">SecureSwap</a>
+            </div>
+
+            <div class="flex items-center space-x-4 md:space-x-6">
+
+                <div id="auth-links" class="hidden md:flex items-center space-x-6">
+                     <a href="login.html" class="text-neutral hover:text-primary transition duration-200">Login</a>
+                     <a href="signup.html" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition duration-300 text-sm">Sign Up</a>
+                 </div>
+
+                 <div id="user-info-header" class="hidden items-center space-x-4">
+                     <a href="profile.html" class="flex items-center text-neutral hover:text-primary transition duration-200" title="View Profile">
+                         <svg class="w-5 h-5 mr-1 inline-block text-neutral-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                         <span id="user-name-header" class="text-sm font-medium text-neutral-dark">[User]</span>
+                     </a>
+                     <button id="logout-button-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#e81700" class="size-4" height="30" width ="30">
+                            <path fill-rule="evenodd" d="M2 4.75A2.75 2.75 0 0 1 4.75 2h3a2.75 2.75 0 0 1 2.75 2.75v.5a.75.75 0 0 1-1.5 0v-.5c0-.69-.56-1.25-1.25-1.25h-3c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h3c.69 0 1.25-.56 1.25-1.25v-.5a.75.75 0 0 1 1.5 0v.5A2.75 2.75 0 0 1 7.75 14h-3A2.75 2.75 0 0 1 2 11.25v-6.5Zm9.47.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 1 1-1.06-1.06l.97-.97H5.25a.75.75 0 0 1 0-1.5h7.19l-.97-.97a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                          </svg>
+                    </button>
+                 </div>
+
+                 <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-neutral-dark focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                 </div>
             </div>
         </nav>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white py-2">
+             <a href="#process" class="block px-6 py-2 text-neutral hover:bg-neutral-light transition duration-200">How it Works</a>
+             <a href="#why-us" class="block px-6 py-2 text-neutral hover:bg-neutral-light transition duration-200">Why SecureSwap</a>
+             <a href="#faq" class="block px-6 py-2 text-neutral hover:bg-neutral-light transition duration-200">FAQ</a>
+             <div id="mobile-auth-links">
+                 <a href="login.html" class="block px-6 py-2 text-neutral hover:bg-neutral-light transition duration-200">Login</a>
+                 <a href="signup.html" class="block px-6 py-2 text-primary hover:bg-neutral-light transition duration-200">Sign Up</a>
+             </div>
+             <div id="mobile-user-info" class="hidden">
+                 <a href="profile.html" class="block px-6 py-2 text-neutral hover:bg-neutral-light transition duration-200">
+                     <span id="mobile-user-name">[User]</span> Profile
+                 </a>
+                 <button id="mobile-logout-button" class="block w-full text-left px-6 py-2 text-red-600 hover:bg-red-50 transition duration-200">Logout</button>
+             </div>
+        </div>
     </header>
 
-     <div id="error-message" class="container mx-auto px-6 py-8 text-center text-red-600 font-medium"> Access Denied. You do not have permission. </div>
-
-    <main id="admin-content" class="container mx-auto px-4 sm:px-6 py-8 flex-grow">
-        <h1 class="text-2xl sm:text-3xl font-bold text-neutral-darkest mb-6">User Verification</h1>
-
-        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full overflow-x-auto">
-            <h2 class="text-lg sm:text-xl font-semibold text-neutral-darkest mb-4">Verify Users</h2>
-            <div id="user-list-container">
-                <p id="loading-users">Loading users...</p>
-                <table id="users-table" class="hidden min-w-full">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>KYC (PAN / ID)</th>
-                            <th>Bank Details</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table-body">
-                        </tbody>
-                </table>
+    <main>
+        <section class="bg-white py-20 md:py-32 overflow-hidden">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold text-neutral-darkest mb-4 leading-tight" data-aos="fade-down">
+                    Making the Internet a <span class="text-primary">Trustworthy</span> Marketplace
+                </h1>
+                <p class="text-lg md:text-xl text-neutral mb-8 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                    SecureSwap ensures both parties complete their side of the deal—no scams, no chargebacks, just secure P2P transactions.
+                </p>
+                <div data-aos="fade-up" data-aos-delay="200">
+                    <a id="create-deal-link" href="signup.html" class="bg-primary text-white px-8 py-3 rounded-md text-lg font-semibold hover:bg-primary-dark transition duration-300 mr-4 inline-block transform hover:scale-105">Create a Secure Deal</a>
+                </div>
+                 <div class="mt-16" data-aos="zoom-in" data-aos-delay="300">
+                    <img src="images/hero-illustration.svg" alt="Secure P2P Transaction Illustration" class="mx-auto max-w-lg" onerror="this.onerror=null; this.src='https://placehold.co/600x400/DBEAFE/3B82F6?text=Hero+Illustration';">
+                </div>
             </div>
-             <div id="action-message" class="text-sm hidden mt-4 text-center p-3 rounded-md"></div>
-        </div>
+        </section>
+
+        <section class="py-16 md:py-24 overflow-hidden">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div data-aos="fade-right">
+                        <img src="images/problem-illustration.svg" alt="Risky P2P Transaction" class="rounded-lg shadow-md mb-8 md:mb-0 mx-auto max-w-md" onerror="this.onerror=null; this.src='https://placehold.co/500x350/FEF3C7/D97706?text=Problem';">
+                    </div>
+                    <div data-aos="fade-left">
+                        <h2 class="text-3xl md:text-4xl font-bold text-neutral-darkest mb-4">The Problem with P2P Deals</h2>
+                        <p class="text-lg text-neutral mb-6"> P2P transactions are risky. You send money first, the other party disappears. You ship an item, and payment never arrives. Scams are everywhere. </p>
+                        <h3 class="text-2xl md:text-3xl font-bold text-secondary-dark mb-3">The SecureSwap Solution</h3>
+                        <p class="text-lg text-neutral"> SecureSwap holds the payment in escrow until both parties fulfill their promises. No fraud. No disputes. Just safe transactions. </p>
+                         <img src="images/solution-illustration.svg" alt="Secure Escrow Solution" class="rounded-lg mt-6 mx-auto max-w-xs" onerror="this.onerror=null; this.src='https://placehold.co/400x300/D1FAE5/059669?text=Solution';">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="process" class="bg-white py-16 md:py-24 overflow-hidden">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-neutral-darkest mb-12" data-aos="fade-up">Simple & Secure Process</h2>
+                <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+                    <div class="text-center p-4 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg rounded-lg" data-aos="fade-up" data-aos-delay="100">
+                        <div class="bg-primary-light w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><g id="freepik--Safe--inject-1"><path d="M131.91,186.65l-.89-.46a142.15,142.15,0,0,1,30.8-40.29l.68.74A141.17,141.17,0,0,0,131.91,186.65Z" style="fill:#10B981"></path><path d="M119.39,222.35l-1-.2a141.67,141.67,0,0,1,5.94-20.79l.94.35A139.64,139.64,0,0,0,119.39,222.35Z" style="fill:#10B981"></path><circle cx="257.01" cy="250.43" r="113.09" transform="translate(-101.8 255.08) rotate(-45)" style="fill:#fafafa;opacity:0.9"></circle><g style="opacity:0.4"><polygon points="176.99 313.68 150.4 313.68 155.54 301.06 171.85 301.06 176.99 313.68" style="fill:#10B981"></polygon><polygon points="176.99 313.68 150.4 313.68 155.54 301.06 171.85 301.06 176.99 313.68" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="217.4 313.68 176.99 313.68 171.85 301.06 212.26 301.06 217.4 313.68" style="fill:#10B981"></polygon><polygon points="217.4 313.68 176.99 313.68 171.85 301.06 212.26 301.06 217.4 313.68" style="opacity:0.30000000000000004"></polygon><polygon points="210.93 313.68 184.33 313.68 189.47 301.06 205.79 301.06 210.93 313.68" style="fill:#10B981"></polygon><polygon points="210.93 313.68 184.33 313.68 189.47 301.06 205.79 301.06 210.93 313.68" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="251.33 313.68 210.93 313.68 205.79 301.06 246.19 301.06 251.33 313.68" style="fill:#10B981"></polygon><polygon points="251.33 313.68 210.93 313.68 205.79 301.06 246.19 301.06 251.33 313.68" style="opacity:0.30000000000000004"></polygon><polygon points="244.86 313.68 218.27 313.68 223.41 301.06 239.72 301.06 244.86 313.68" style="fill:#10B981"></polygon><polygon points="244.86 313.68 218.27 313.68 223.41 301.06 239.72 301.06 244.86 313.68" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="285.26 313.68 244.86 313.68 239.72 301.06 280.13 301.06 285.26 313.68" style="fill:#10B981"></polygon><polygon points="285.26 313.68 244.86 313.68 239.72 301.06 280.13 301.06 285.26 313.68" style="opacity:0.30000000000000004"></polygon><polygon points="278.79 313.68 252.2 313.68 257.34 301.06 273.65 301.06 278.79 313.68" style="fill:#10B981"></polygon><polygon points="278.79 313.68 252.2 313.68 257.34 301.06 273.65 301.06 278.79 313.68" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="319.2 313.68 278.79 313.68 273.65 301.06 314.06 301.06 319.2 313.68" style="fill:#10B981"></polygon><polygon points="319.2 313.68 278.79 313.68 273.65 301.06 314.06 301.06 319.2 313.68" style="opacity:0.30000000000000004"></polygon><polygon points="312.73 313.68 286.13 313.68 291.27 301.06 307.59 301.06 312.73 313.68" style="fill:#10B981"></polygon><polygon points="312.73 313.68 286.13 313.68 291.27 301.06 307.59 301.06 312.73 313.68" style="fill:#fafafa;opacity:0.2"></polygon><path d="M334.29,313.68q1.93-6.27,3.5-12.62h-30.2l5.14,12.62Z" style="fill:#10B981"></path><path d="M334.29,313.68q1.93-6.27,3.5-12.62h-30.2l5.14,12.62Z" style="opacity:0.30000000000000004"></path><path d="M337.79,301.06H325.21l-5.14,12.62h14.22Q336.23,307.41,337.79,301.06Z" style="fill:#10B981"></path><path d="M337.79,301.06H325.21l-5.14,12.62h14.22Q336.23,307.41,337.79,301.06Z" style="fill:#fafafa;opacity:0.2"></path><polygon points="187.36 301.06 160.76 301.06 165.9 288.43 182.22 288.43 187.36 301.06" style="fill:#10B981"></polygon><polygon points="187.36 301.06 160.76 301.06 165.9 288.43 182.22 288.43 187.36 301.06" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="227.76 301.06 187.36 301.06 182.22 288.43 222.62 288.43 227.76 301.06" style="fill:#10B981"></polygon><polygon points="227.76 301.06 187.36 301.06 182.22 288.43 222.62 288.43 227.76 301.06" style="opacity:0.30000000000000004"></polygon><polygon points="221.29 301.06 194.7 301.06 199.84 288.43 216.15 288.43 221.29 301.06" style="fill:#10B981"></polygon><polygon points="221.29 301.06 194.7 301.06 199.84 288.43 216.15 288.43 221.29 301.06" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="261.69 301.06 221.29 301.06 216.15 288.43 256.56 288.43 261.69 301.06" style="fill:#10B981"></polygon><polygon points="261.69 301.06 221.29 301.06 216.15 288.43 256.56 288.43 261.69 301.06" style="opacity:0.30000000000000004"></polygon><polygon points="255.22 301.06 228.63 301.06 233.77 288.43 250.08 288.43 255.22 301.06" style="fill:#10B981"></polygon><polygon points="255.22 301.06 228.63 301.06 233.77 288.43 250.08 288.43 255.22 301.06" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="295.63 301.06 255.22 301.06 250.08 288.43 290.49 288.43 295.63 301.06" style="fill:#10B981"></polygon><polygon points="295.63 301.06 255.22 301.06 250.08 288.43 290.49 288.43 295.63 301.06" style="opacity:0.30000000000000004"></polygon><polygon points="289.16 301.06 262.56 301.06 267.7 288.43 284.02 288.43 289.16 301.06" style="fill:#10B981"></polygon><polygon points="289.16 301.06 262.56 301.06 267.7 288.43 284.02 288.43 289.16 301.06" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="329.56 301.06 289.16 301.06 284.02 288.43 324.42 288.43 329.56 301.06" style="fill:#10B981"></polygon><polygon points="329.56 301.06 289.16 301.06 284.02 288.43 324.42 288.43 329.56 301.06" style="opacity:0.30000000000000004"></polygon><polygon points="323.09 301.06 296.5 301.06 301.64 288.43 317.95 288.43 323.09 301.06" style="fill:#10B981"></polygon><polygon points="323.09 301.06 296.5 301.06 301.64 288.43 317.95 288.43 323.09 301.06" style="fill:#fafafa;opacity:0.2"></polygon><path d="M337.79,301.06c1-4.19,1.95-8.39,2.73-12.63H318l5.14,12.63Z" style="fill:#10B981"></path><path d="M337.79,301.06c1-4.19,1.95-8.39,2.73-12.63H318l5.14,12.63Z" style="opacity:0.30000000000000004"></path><path d="M340.52,288.43h-4.95l-5.14,12.63h7.36C338.82,296.87,339.74,292.67,340.52,288.43Z" style="fill:#10B981"></path><path d="M340.52,288.43h-4.95l-5.14,12.63h7.36C338.82,296.87,339.74,292.67,340.52,288.43Z" style="fill:#fafafa;opacity:0.2"></path><polygon points="196.24 288.43 169.65 288.43 174.79 275.81 191.1 275.81 196.24 288.43" style="fill:#10B981"></polygon><polygon points="196.24 288.43 169.65 288.43 174.79 275.81 191.1 275.81 196.24 288.43" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="236.65 288.43 196.24 288.43 191.1 275.81 231.51 275.81 236.65 288.43" style="fill:#10B981"></polygon><polygon points="236.65 288.43 196.24 288.43 191.1 275.81 231.51 275.81 236.65 288.43" style="opacity:0.30000000000000004"></polygon><polygon points="230.18 288.43 203.58 288.43 208.72 275.81 225.03 275.81 230.18 288.43" style="fill:#10B981"></polygon><polygon points="230.18 288.43 203.58 288.43 208.72 275.81 225.03 275.81 230.18 288.43" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="270.58 288.43 230.18 288.43 225.03 275.81 265.44 275.81 270.58 288.43" style="fill:#10B981"></polygon><polygon points="270.58 288.43 230.18 288.43 225.03 275.81 265.44 275.81 270.58 288.43" style="opacity:0.30000000000000004"></polygon><polygon points="264.11 288.43 237.52 288.43 242.66 275.81 258.97 275.81 264.11 288.43" style="fill:#10B981"></polygon><polygon points="264.11 288.43 237.52 288.43 242.66 275.81 258.97 275.81 264.11 288.43" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="304.51 288.43 264.11 288.43 258.97 275.81 299.37 275.81 304.51 288.43" style="fill:#10B981"></polygon><polygon points="304.51 288.43 264.11 288.43 258.97 275.81 299.37 275.81 304.51 288.43" style="opacity:0.30000000000000004"></polygon><polygon points="298.04 288.43 271.45 288.43 276.59 275.81 292.9 275.81 298.04 288.43" style="fill:#10B981"></polygon><polygon points="298.04 288.43 271.45 288.43 276.59 275.81 292.9 275.81 298.04 288.43" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="338.45 288.43 298.04 288.43 292.9 275.81 333.31 275.81 338.45 288.43" style="fill:#10B981"></polygon><polygon points="338.45 288.43 298.04 288.43 292.9 275.81 333.31 275.81 338.45 288.43" style="opacity:0.30000000000000004"></polygon><polygon points="331.98 288.43 305.38 288.43 310.52 275.81 326.84 275.81 331.98 288.43" style="fill:#10B981"></polygon><polygon points="331.98 288.43 305.38 288.43 310.52 275.81 326.84 275.81 331.98 288.43" style="fill:#fafafa;opacity:0.2"></polygon><path d="M340.52,288.43q1.17-6.27,2-12.62H326.84L332,288.43Z" style="fill:#10B981"></path><path d="M340.52,288.43q1.17-6.27,2-12.62H326.84L332,288.43Z" style="opacity:0.30000000000000004"></path><path d="M341.41,283.29l-2.09,5.14h1.2Q341,285.87,341.41,283.29Z" style="fill:#10B981"></path><path d="M341.41,283.29l-2.09,5.14h1.2Q341,285.87,341.41,283.29Z" style="fill:#fafafa;opacity:0.2"></path><polygon points="206.6 275.81 180.01 275.81 185.15 263.19 201.47 263.19 206.6 275.81" style="fill:#10B981"></polygon><polygon points="206.6 275.81 180.01 275.81 185.15 263.19 201.47 263.19 206.6 275.81" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="247.01 275.81 206.6 275.81 201.47 263.19 241.87 263.19 247.01 275.81" style="fill:#10B981"></polygon><polygon points="247.01 275.81 206.6 275.81 201.47 263.19 241.87 263.19 247.01 275.81" style="opacity:0.30000000000000004"></polygon><polygon points="240.54 275.81 213.95 275.81 219.09 263.19 235.4 263.19 240.54 275.81" style="fill:#10B981"></polygon><polygon points="240.54 275.81 213.95 275.81 219.09 263.19 235.4 263.19 240.54 275.81" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="280.94 275.81 240.54 275.81 235.4 263.19 275.81 263.19 280.94 275.81" style="fill:#10B981"></polygon><polygon points="280.94 275.81 240.54 275.81 235.4 263.19 275.81 263.19 280.94 275.81" style="opacity:0.30000000000000004"></polygon><polygon points="274.47 275.81 247.88 275.81 253.02 263.19 269.33 263.19 274.47 275.81" style="fill:#10B981"></polygon><polygon points="274.47 275.81 247.88 275.81 253.02 263.19 269.33 263.19 274.47 275.81" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="314.88 275.81 274.47 275.81 269.33 263.19 309.74 263.19 314.88 275.81" style="fill:#10B981"></polygon><polygon points="314.88 275.81 274.47 275.81 269.33 263.19 309.74 263.19 314.88 275.81" style="opacity:0.30000000000000004"></polygon><polygon points="308.41 275.81 281.81 275.81 286.95 263.19 303.27 263.19 308.41 275.81" style="fill:#10B981"></polygon><polygon points="308.41 275.81 281.81 275.81 286.95 263.19 303.27 263.19 308.41 275.81" style="fill:#fafafa;opacity:0.2"></polygon><path d="M342.48,275.81q.78-6.29,1.15-12.62H303.27l5.14,12.62Z" style="fill:#10B981"></path><path d="M342.48,275.81q.78-6.29,1.15-12.62H303.27l5.14,12.62Z" style="opacity:0.30000000000000004"></path><polygon points="342.34 275.81 315.75 275.81 320.89 263.19 337.2 263.19 342.34 275.81" style="fill:#10B981"></polygon><polygon points="342.34 275.81 315.75 275.81 320.89 263.19 337.2 263.19 342.34 275.81" style="fill:#fafafa;opacity:0.2"></polygon><path d="M342.48,275.81q.78-6.29,1.15-12.62H337.2l5.14,12.62Z" style="fill:#10B981"></path><path d="M342.48,275.81q.78-6.29,1.15-12.62H337.2l5.14,12.62Z" style="opacity:0.30000000000000004"></path><path d="M200.71,364.17h9.08l-5.14-12.62H184.51A132.76,132.76,0,0,1,200.71,364.17Z" style="fill:#10B981"></path><path d="M200.71,364.17h9.08l-5.14-12.62H184.51A132.76,132.76,0,0,1,200.71,364.17Z" style="opacity:0.30000000000000004"></path><path d="M200.71,364.17h2.61l-5.14-12.62H184.51A132.76,132.76,0,0,1,200.71,364.17Z" style="fill:#10B981"></path><path d="M200.71,364.17h2.61l-5.14-12.62H184.51A132.76,132.76,0,0,1,200.71,364.17Z" style="fill:#fafafa;opacity:0.2"></path><polygon points="243.72 364.17 203.32 364.17 198.18 351.55 238.58 351.55 243.72 364.17" style="fill:#10B981"></polygon><polygon points="243.72 364.17 203.32 364.17 198.18 351.55 238.58 351.55 243.72 364.17" style="opacity:0.30000000000000004"></polygon><polygon points="237.25 364.17 210.66 364.17 215.8 351.55 232.11 351.55 237.25 364.17" style="fill:#10B981"></polygon><polygon points="237.25 364.17 210.66 364.17 215.8 351.55 232.11 351.55 237.25 364.17" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="277.65 364.17 237.25 364.17 232.11 351.55 272.51 351.55 277.65 364.17" style="fill:#10B981"></polygon><polygon points="277.65 364.17 237.25 364.17 232.11 351.55 272.51 351.55 277.65 364.17" style="opacity:0.30000000000000004"></polygon><polygon points="271.18 364.17 244.59 364.17 249.73 351.55 266.04 351.55 271.18 364.17" style="fill:#10B981"></polygon><polygon points="271.18 364.17 244.59 364.17 249.73 351.55 266.04 351.55 271.18 364.17" style="fill:#fafafa;opacity:0.2"></polygon><path d="M311.37,363.63l-4.92-12.08H266l5.14,12.62h39.63C311,364,311.18,363.81,311.37,363.63Z" style="fill:#10B981"></path><path d="M311.37,363.63l-4.92-12.08H266l5.14,12.62h39.63C311,364,311.18,363.81,311.37,363.63Z" style="opacity:0.30000000000000004"></path><polygon points="305.12 364.17 278.52 364.17 283.66 351.55 299.98 351.55 305.12 364.17" style="fill:#10B981"></polygon><polygon points="305.12 364.17 278.52 364.17 283.66 351.55 299.98 351.55 305.12 364.17" style="fill:#fafafa;opacity:0.2"></polygon><path d="M310.81,364.17a47.06,47.06,0,0,0,9.13-12.62H300l5.14,12.62Z" style="fill:#10B981"></path><path d="M310.81,364.17a47.06,47.06,0,0,0,9.13-12.62H300l5.14,12.62Z" style="opacity:0.30000000000000004"></path><path d="M319.94,351.55H317.6l-3.88,9.52A53.12,53.12,0,0,0,319.94,351.55Z" style="fill:#10B981"></path><path d="M319.94,351.55H317.6l-3.88,9.52A53.12,53.12,0,0,0,319.94,351.55Z" style="fill:#fafafa;opacity:0.2"></path><path d="M169.32,340.34c4.81,4.07,10,7.62,15.19,11.21h1.71l-5.14-12.62H167.69C168.23,339.4,168.77,339.88,169.32,340.34Z" style="fill:#10B981"></path><path d="M169.32,340.34c4.81,4.07,10,7.62,15.19,11.21h1.71l-5.14-12.62H167.69C168.23,339.4,168.77,339.88,169.32,340.34Z" style="opacity:0.30000000000000004"></path><path d="M169.32,340.34c2.74,2.32,5.61,4.47,8.53,6.55l-3.24-8h-6.92C168.23,339.4,168.77,339.88,169.32,340.34Z" style="fill:#10B981"></path><path d="M169.32,340.34c2.74,2.32,5.61,4.47,8.53,6.55l-3.24-8h-6.92C168.23,339.4,168.77,339.88,169.32,340.34Z" style="fill:#fafafa;opacity:0.2"></path><path d="M184.51,351.55h35.64L215,338.93h-40.4l3.24,8C180.05,348.47,182.29,350,184.51,351.55Z" style="fill:#10B981"></path><path d="M184.51,351.55h35.64L215,338.93h-40.4l3.24,8C180.05,348.47,182.29,350,184.51,351.55Z" style="opacity:0.30000000000000004"></path><polygon points="213.68 351.55 187.09 351.55 192.23 338.93 208.54 338.93 213.68 351.55" style="fill:#10B981"></polygon><polygon points="213.68 351.55 187.09 351.55 192.23 338.93 208.54 338.93 213.68 351.55" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="254.09 351.55 213.68 351.55 208.54 338.93 248.95 338.93 254.09 351.55" style="fill:#10B981"></polygon><polygon points="254.09 351.55 213.68 351.55 208.54 338.93 248.95 338.93 254.09 351.55" style="opacity:0.30000000000000004"></polygon><polygon points="247.61 351.55 221.02 351.55 226.16 338.93 242.47 338.93 247.61 351.55" style="fill:#10B981"></polygon><polygon points="247.61 351.55 221.02 351.55 226.16 338.93 242.47 338.93 247.61 351.55" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="288.02 351.55 247.61 351.55 242.47 338.93 282.88 338.93 288.02 351.55" style="fill:#10B981"></polygon><polygon points="288.02 351.55 247.61 351.55 242.47 338.93 282.88 338.93 288.02 351.55" style="opacity:0.30000000000000004"></polygon><polygon points="281.55 351.55 254.96 351.55 260.1 338.93 276.41 338.93 281.55 351.55" style="fill:#10B981"></polygon><polygon points="281.55 351.55 254.96 351.55 260.1 338.93 276.41 338.93 281.55 351.55" style="fill:#fafafa;opacity:0.2"></polygon><path d="M321.05,349.35l-4.24-10.42h-40.4l5.14,12.62h38.39C320.33,350.82,320.69,350.09,321.05,349.35Z" style="fill:#10B981"></path><path d="M321.05,349.35l-4.24-10.42h-40.4l5.14,12.62h38.39C320.33,350.82,320.69,350.09,321.05,349.35Z" style="opacity:0.30000000000000004"></path><polygon points="315.48 351.55 288.89 351.55 294.03 338.93 310.34 338.93 315.48 351.55" style="fill:#10B981"></polygon><polygon points="315.48 351.55 288.89 351.55 294.03 338.93 310.34 338.93 315.48 351.55" style="fill:#fafafa;opacity:0.2"></polygon><path d="M319.94,351.55a114.32,114.32,0,0,0,5.52-12.62H310.34l5.14,12.62Z" style="fill:#10B981"></path><path d="M319.94,351.55a114.32,114.32,0,0,0,5.52-12.62H310.34l5.14,12.62Z" style="opacity:0.30000000000000004"></path><path d="M167.69,338.93H195.1L190,326.3H155.57A107.08,107.08,0,0,0,167.69,338.93Z" style="fill:#10B981"></path><path d="M167.69,338.93H195.1L190,326.3H155.57A107.08,107.08,0,0,0,167.69,338.93Z" style="opacity:0.30000000000000004"></path><path d="M167.69,338.93h20.94l-5.14-12.63H167.18l-3.59,8.81Q165.58,337.08,167.69,338.93Z" style="fill:#10B981"></path><path d="M167.69,338.93h20.94l-5.14-12.63H167.18l-3.59,8.81Q165.58,337.08,167.69,338.93Z" style="fill:#fafafa;opacity:0.2"></path><polygon points="229.04 338.93 188.63 338.93 183.49 326.3 223.9 326.3 229.04 338.93" style="fill:#10B981"></polygon><polygon points="229.04 338.93 188.63 338.93 183.49 326.3 223.9 326.3 229.04 338.93" style="opacity:0.30000000000000004"></polygon><polygon points="222.56 338.93 195.97 338.93 201.11 326.3 217.43 326.3 222.56 338.93" style="fill:#10B981"></polygon><polygon points="222.56 338.93 195.97 338.93 201.11 326.3 217.43 326.3 222.56 338.93" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="262.97 338.93 222.56 338.93 217.43 326.3 257.83 326.3 262.97 338.93" style="fill:#10B981"></polygon><polygon points="262.97 338.93 222.56 338.93 217.43 326.3 257.83 326.3 262.97 338.93" style="opacity:0.30000000000000004"></polygon><polygon points="256.5 338.93 229.91 338.93 235.05 326.3 251.36 326.3 256.5 338.93" style="fill:#10B981"></polygon><polygon points="256.5 338.93 229.91 338.93 235.05 326.3 251.36 326.3 256.5 338.93" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="296.9 338.93 256.5 338.93 251.36 326.3 291.76 326.3 296.9 338.93" style="fill:#10B981"></polygon><polygon points="296.9 338.93 256.5 338.93 251.36 326.3 291.76 326.3 296.9 338.93" style="opacity:0.30000000000000004"></polygon><polygon points="290.43 338.93 263.84 338.93 268.98 326.3 285.29 326.3 290.43 338.93" style="fill:#10B981"></polygon><polygon points="290.43 338.93 263.84 338.93 268.98 326.3 285.29 326.3 290.43 338.93" style="fill:#fafafa;opacity:0.2"></polygon><path d="M328,331.94l-2.29-5.64H285.29l5.14,12.63h35C326.36,336.55,327.19,334.2,328,331.94Z" style="fill:#10B981"></path><path d="M328,331.94l-2.29-5.64H285.29l5.14,12.63h35C326.36,336.55,327.19,334.2,328,331.94Z" style="opacity:0.30000000000000004"></path><polygon points="324.37 338.93 297.77 338.93 302.91 326.3 319.23 326.3 324.37 338.93" style="fill:#10B981"></polygon><polygon points="324.37 338.93 297.77 338.93 302.91 326.3 319.23 326.3 324.37 338.93" style="fill:#fafafa;opacity:0.2"></polygon><path d="M325.46,338.93c1.65-4.37,3.09-8.64,4.49-12.42a1.72,1.72,0,0,1,.07-.21H319.23l5.14,12.63Z" style="fill:#10B981"></path><path d="M325.46,338.93c1.65-4.37,3.09-8.64,4.49-12.42a1.72,1.72,0,0,1,.07-.21H319.23l5.14,12.63Z" style="opacity:0.30000000000000004"></path><path d="M155.57,326.3h9.49l-5.14-12.62H146.66A111.23,111.23,0,0,0,155.57,326.3Z" style="fill:#10B981"></path><path d="M155.57,326.3h9.49l-5.14-12.62H146.66A111.23,111.23,0,0,0,155.57,326.3Z" style="fill:#fafafa;opacity:0.2"></path><polygon points="205.47 326.3 165.06 326.3 159.92 313.68 200.33 313.68 205.47 326.3" style="fill:#10B981"></polygon><polygon points="205.47 326.3 165.06 326.3 159.92 313.68 200.33 313.68 205.47 326.3" style="opacity:0.30000000000000004"></polygon><polygon points="199 326.3 172.4 326.3 177.54 313.68 193.86 313.68 199 326.3" style="fill:#10B981"></polygon><polygon points="199 326.3 172.4 326.3 177.54 313.68 193.86 313.68 199 326.3" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="239.4 326.3 199 326.3 193.86 313.68 234.26 313.68 239.4 326.3" style="fill:#10B981"></polygon><polygon points="239.4 326.3 199 326.3 193.86 313.68 234.26 313.68 239.4 326.3" style="opacity:0.30000000000000004"></polygon><polygon points="232.93 326.3 206.34 326.3 211.48 313.68 227.79 313.68 232.93 326.3" style="fill:#10B981"></polygon><polygon points="232.93 326.3 206.34 326.3 211.48 313.68 227.79 313.68 232.93 326.3" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="273.33 326.3 232.93 326.3 227.79 313.68 268.19 313.68 273.33 326.3" style="fill:#10B981"></polygon><polygon points="273.33 326.3 232.93 326.3 227.79 313.68 268.19 313.68 273.33 326.3" style="opacity:0.30000000000000004"></polygon><polygon points="266.86 326.3 240.27 326.3 245.41 313.68 261.72 313.68 266.86 326.3" style="fill:#10B981"></polygon><polygon points="266.86 326.3 240.27 326.3 245.41 313.68 261.72 313.68 266.86 326.3" style="fill:#fafafa;opacity:0.2"></polygon><polygon points="307.27 326.3 266.86 326.3 261.72 313.68 302.13 313.68 307.27 326.3" style="fill:#10B981"></polygon><polygon points="307.27 326.3 266.86 326.3 261.72 313.68 302.13 313.68 307.27 326.3" style="opacity:0.30000000000000004"></polygon><polygon points="300.8 326.3 274.2 326.3 279.34 313.68 295.66 313.68 300.8 326.3" style="fill:#10B981"></polygon><polygon points="300.8 326.3 274.2 326.3 279.34 313.68 295.66 313.68 300.8 326.3" style="fill:#fafafa;opacity:0.2"></polygon><path d="M330,326.3q2.31-6.26,4.27-12.62H295.66l5.14,12.62Z" style="fill:#10B981"></path><path d="M330,326.3q2.31-6.26,4.27-12.62H295.66l5.14,12.62Z" style="opacity:0.30000000000000004"></path><path d="M332.2,320.1l-2.61-6.42H313.28l-5.14,12.62H330C330.78,324.25,331.5,322.18,332.2,320.1Z" style="fill:#10B981"></path><path d="M332.2,320.1l-2.61-6.42H313.28l-5.14,12.62H330C330.78,324.25,331.5,322.18,332.2,320.1Z" style="fill:#fafafa;opacity:0.2"></path><path d="M334.29,313.68h-4.7l2.61,6.42Q333.3,316.91,334.29,313.68Z" style="fill:#10B981"></path><path d="M334.29,313.68h-4.7l2.61,6.42Q333.3,316.91,334.29,313.68Z" style="opacity:0.30000000000000004"></path></g><path d="M257.18,112.41A138.13,138.13,0,1,0,395.31,250.54,138.13,138.13,0,0,0,257.18,112.41ZM257,363.52A113.09,113.09,0,1,1,370.1,250.43,113.09,113.09,0,0,1,257,363.52Z" style="fill:#10B981"></path><path d="M257.18,381.56c72.24,0,131-58.78,131-131s-58.78-131-131-131-131,58.77-131,131S184.93,381.56,257.18,381.56Zm0-261a130.17,130.17,0,0,1,130,130c0,71.69-58.33,130-130,130s-130-58.33-130-130S185.48,120.52,257.18,120.52Z" style="fill:#fafafa;opacity:0.4"></path></g><g id="freepik--safe-door--inject-1"><path d="M318.88,384.19c-31.94-4.81-56.2-64.51-56.2-133.65s24.26-128.84,56.2-133.65l29.77-4.48V388.67Z" style="fill:#10B981"></path><path d="M318.88,384.19c-31.94-4.81-56.2-64.51-56.2-133.65s24.26-128.84,56.2-133.65l29.77-4.48V388.67Z" style="opacity:0.30000000000000004"></path><ellipse cx="348.65" cy="250.54" rx="52.17" ry="138.13" style="fill:#10B981"></ellipse><path d="M358.31,182c-16,0-28.89,30.69-28.89,68.55s12.93,68.54,28.89,68.54,28.89-30.68,28.89-68.54S374.27,182,358.31,182Zm23,68.55c0,10.89-1.76,20.79-4.64,28.22L368.33,250l8.18-28.17C379.51,229.3,381.35,239.4,381.35,250.54Zm-17.59-41.71c3.53,0,6.8,2.46,9.55,6.69l-7.47,25.91-8.62-29.6A9.53,9.53,0,0,1,363.76,208.83Zm-17.57,41.71c0-14.1,2.95-26.55,7.46-34.1L363.37,250l-9.9,34.32C349.06,276.76,346.19,264.45,346.19,250.54Zm17.57,41.71A9.66,9.66,0,0,1,357,289l8.84-30.47,7.71,26.64C370.75,289.66,367.39,292.25,363.76,292.25Z" style="fill:#fafafa;opacity:0.2"></path><path d="M350.06,385.17c-23.5,0-48.66-54.1-48.66-134.63s25.16-134.63,48.66-134.63,48.67,54.1,48.67,134.63S373.57,385.17,350.06,385.17Zm0-268.26c-23,0-47.66,53.69-47.66,133.63S327,384.17,350.06,384.17s47.67-53.7,47.67-133.63S373.08,116.91,350.06,116.91Z" style="fill:#fafafa;opacity:0.4"></path></g></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-neutral-darkest mb-2">1. Secure the Payment</h3>
+                        <p class="text-neutral">Buyer deposits money into SecureSwap’s secure escrow.</p>
+                    </div>
+                    <div class="text-center p-4 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg rounded-lg" data-aos="fade-up" data-aos-delay="200">
+                        <div class="bg-primary-light w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><g id="freepik--Character--inject-371"><path d="M189.35,118.94l6.58,93.2a29.06,29.06,0,0,0,29,27h0a29.06,29.06,0,0,0,29-31c-.58-8.87-1.11-16.13-1.11-16.13s22.57-3.51,22.85-26.07c.16-13-2.09-42.6-4-65.25a29.59,29.59,0,0,0-29.49-27.07H228.51A41.75,41.75,0,0,0,189.35,118.94Z" style="fill:#b78876"></path><path d="M252.84,191.73s-14.26,1.16-29.41-8.36c0,0,6.95,16.24,29.46,14.21Z" style="fill:#aa6550"></path><path d="M264.62,128a3.22,3.22,0,0,1-3.11,3.25,3.08,3.08,0,0,1-3.32-2.9,3.23,3.23,0,0,1,3.1-3.26A3.09,3.09,0,0,1,264.62,128Z" style="fill:#263238"></path><path d="M267.74,123.36c-.4.42-2.84-1.38-6.3-1.37s-6,1.74-6.39,1.32c-.18-.19.23-1,1.33-1.76a8.85,8.85,0,0,1,5.11-1.57,8.42,8.42,0,0,1,5,1.62C267.58,122.42,267.94,123.18,267.74,123.36Z" style="fill:#263238"></path><path d="M230.79,128a3.22,3.22,0,0,1-3.11,3.25,3.08,3.08,0,0,1-3.32-2.9,3.23,3.23,0,0,1,3.11-3.26A3.09,3.09,0,0,1,230.79,128Z" style="fill:#263238"></path><path d="M233.67,124c-.4.42-2.85-1.39-6.31-1.38s-6,1.75-6.39,1.32c-.18-.19.22-.94,1.33-1.75a9,9,0,0,1,5.11-1.58,8.62,8.62,0,0,1,5,1.62C233.5,123.06,233.86,123.82,233.67,124Z" style="fill:#263238"></path><path d="M246.25,149.72c0-.2,2.14-.57,5.63-1,.88-.1,1.72-.27,1.87-.88a4.47,4.47,0,0,0-.59-2.62q-1.24-3.21-2.62-6.74c-3.63-9.6-6.27-17.49-5.88-17.63s3.65,7.52,7.29,17.11q1.31,3.56,2.51,6.79c.33,1,.91,2.14.45,3.47a2.18,2.18,0,0,1-1.45,1.29,5.49,5.49,0,0,1-1.5.21C248.44,149.9,246.26,149.92,246.25,149.72Z" style="fill:#263238"></path><path d="M236.05,152.12c.56,0,.57,3.73,3.79,6.4s7.22,2.26,7.25,2.78c.06.24-.89.73-2.58.78a9.38,9.38,0,0,1-6.06-2.11,8.15,8.15,0,0,1-2.94-5.37C235.37,153,235.79,152.1,236.05,152.12Z" style="fill:#263238"></path><path d="M234.56,110.42c-.34,1-3.8.5-7.87,1s-7.36,1.6-7.9.75c-.24-.4.33-1.29,1.66-2.2a13.79,13.79,0,0,1,12-1.33C234,109.24,234.71,110,234.56,110.42Z" style="fill:#263238"></path><path d="M266.47,113.33c-.61.79-3,0-5.87-.07s-5.3.53-5.86-.29c-.25-.4.13-1.19,1.2-1.94a8.48,8.48,0,0,1,9.45.3C266.4,112.13,266.74,113,266.47,113.33Z" style="fill:#263238"></path><path d="M197,135.87c-.39-.17-15.5-4.58-15,10.84s15.87,11.75,15.89,11.3S197,135.87,197,135.87Z" style="fill:#b78876"></path><path d="M192.94,152.32c-.07,0-.26.2-.71.42a2.71,2.71,0,0,1-2,.11c-1.65-.55-3.1-3.09-3.27-5.87a9,9,0,0,1,.63-3.87,3.12,3.12,0,0,1,2-2.13,1.37,1.37,0,0,1,1.61.69c.22.42.13.73.21.76s.33-.27.18-.91a1.7,1.7,0,0,0-.64-.94,2,2,0,0,0-1.5-.35,3.79,3.79,0,0,0-2.73,2.48,9.24,9.24,0,0,0-.79,4.33c.2,3.11,1.88,6,4.13,6.54a2.88,2.88,0,0,0,2.45-.49C192.92,152.7,193,152.35,192.94,152.32Z" style="fill:#aa6550"></path><path d="M188.38,135.35c2.35-.57,6.42,1.6,7.42,3.8s1.22,4.7,2.22,6.91,3.26,4.19,5.62,3.63a4.73,4.73,0,0,0,3.21-3.51,13,13,0,0,0,.05-5c-.91-7.2-2.42-14.34-2.71-21.6s.74-14.79,4.55-21,10.8-10.73,18-10.14c4.79.38,9.19,2.88,13.95,3.55a18.83,18.83,0,0,0,15.66-5.23c.52-.51,2.92-2.1,2.92-2.1,0-.37-.35-3.59-1.62-4.77-9.45-8.73-26.47-11.17-38.95-8s-24.18,12-29.55,23.64-3.77,28-.81,39.8" style="fill:#263238"></path><path d="M271.88,97.26s-59.18-19-84.78,32.16c0,0-3.83-12.81-3.83-19.68,0-4.59,2.74-31.91,30.86-40.51C214.13,69.23,256.48,53.07,271.88,97.26Z" style="fill:#10B981"></path><path d="M221,98.54a12.88,12.88,0,0,0,20.49,1.86,7.59,7.59,0,0,0,14.35-.75,17.14,17.14,0,0,0,5.76,4.2c2.25.83,5.1.51,6.57-1.37s1.07-4.85-.41-6.79a14,14,0,0,0-6-4,43.27,43.27,0,0,0-22.34-3.38c-7.55,1-14.86,4.68-19.58,10.66" style="fill:#263238"></path><g style="opacity:0.4"><path d="M271.88,97.26a27.51,27.51,0,0,0-18.82-8.55c-17.46-.77-50.13,9.05-66,40.71,0,0-3.83-12.81-3.83-19.68,0-4.59,2.74-31.91,30.86-40.51C214.13,69.23,256.48,53.07,271.88,97.26Z"></path></g><path d="M189.57,123.43c8.77-13.43,20.87-24.53,34.48-33s36.1-16.9,51.6-21c4.66-1.24,9.51-2.32,14.26-1.5s9.39,4,10.56,8.65c1.48,5.85-8.9,14.87-13.77,18.41s-14.82,8.75-14.82,8.75.14-10.84-17.22-13.07C231.06,87.58,189.57,123.43,189.57,123.43Z" style="fill:#10B981"></path><path d="M238.11,79.2s8.52-4.72,17.09-5.82a22.28,22.28,0,0,0-4.65-2.78,43.93,43.93,0,0,0-13.32,4.48Z" style="fill:#e0e0e0"></path><path d="M286.14,211.46l-18.77-4.14-7.64-1.91-6.36-9.86s-3,17.63-14.39,27.12a13.21,13.21,0,0,1-11.19,2.68c-2.57-.54-5.59-1.2-7.83-1.8-.48-.13-1-.3-1.56-.5a36.61,36.61,0,0,1-19.33-16.67c-2.52-4.48-4.65-9.08-3.92-10.83L186.24,214l-52.5,24.18L103.93,311l57.77,17.08,1.8,60-10.88,75.64,163.43.11-5.8-168.29" style="fill:#10B981"></path><path d="M243.89,276.61a6.29,6.29,0,0,1-1,0l-2.91-.07-10.39-.37h-.2V276c-.17-4.51-.38-9.85-.61-15.56-.27-8.23-.51-15.67-.7-21.14-.06-2.66-.11-4.83-.15-6.41,0-.71,0-1.29,0-1.74a2.4,2.4,0,0,1,0-.61,2.66,2.66,0,0,1,.07.6c0,.46.07,1,.11,1.74.08,1.58.19,3.75.32,6.4.22,5.47.52,12.91.85,21.13.2,5.72.38,11.06.54,15.57l-.22-.21,10.39.55,2.9.19A4.61,4.61,0,0,1,243.89,276.61Z" style="fill:#263238"></path><path d="M235,252.3a1.44,1.44,0,0,1,.78-.26,3.37,3.37,0,0,1,3.2,1.79,3,3,0,0,1,.29,1.82,3.68,3.68,0,0,1-2.67,3,3.87,3.87,0,0,1-3.8-1.35,3.69,3.69,0,0,1-.72-3.23,3.93,3.93,0,0,1,1.08-2c.38-.37.66-.49.67-.46s-.2.21-.52.6a4.22,4.22,0,0,0-.87,1.89,3.39,3.39,0,0,0,.72,2.85,3.47,3.47,0,0,0,3.32,1.16,3.23,3.23,0,0,0,2.31-2.58,2.72,2.72,0,0,0-1.07-2.64,3.16,3.16,0,0,0-1.93-.69C235.27,252.24,235,252.34,235,252.3Z" style="fill:#263238"></path><path d="M233.23,231.17a1.6,1.6,0,0,1,.82-.38,3.55,3.55,0,0,1,2.44.36,3.49,3.49,0,0,1,1.31,1.16,3.28,3.28,0,0,1,.55,1.95,3.92,3.92,0,0,1-2.64,3.55,4,4,0,0,1-4.18-1.46,3.51,3.51,0,0,1-.73-1.88,4.14,4.14,0,0,1,.28-1.73,4,4,0,0,1,1.57-1.9,1.63,1.63,0,0,1,.85-.32s-.29.15-.73.49a4,4,0,0,0-1.34,1.86,3.29,3.29,0,0,0,.48,3.19,3.54,3.54,0,0,0,3.65,1.25,3.48,3.48,0,0,0,2.31-3.07,3,3,0,0,0-1.55-2.77,3.62,3.62,0,0,0-2.23-.48C233.54,231.06,233.25,231.21,233.23,231.17Z" style="fill:#263238"></path><path d="M227.91,311.88s.08-.05.25-.11l.75-.29c.67-.23,1.62-.65,2.83-1.21a37.52,37.52,0,0,0,9.2-6.54,73.42,73.42,0,0,0,10.53-13.06,184.28,184.28,0,0,0,10.26-17.88,311.34,311.34,0,0,0,14.57-34.52c1.63-4.52,2.9-8.19,3.79-10.72l1-2.92c.11-.3.21-.55.28-.75a1.39,1.39,0,0,1,.11-.25,1,1,0,0,1-.06.27c-.06.2-.14.45-.23.77-.23.71-.54,1.69-.93,3-.83,2.55-2.05,6.24-3.65,10.77A287.93,287.93,0,0,1,262.19,273a178.54,178.54,0,0,1-10.32,17.91A72.1,72.1,0,0,1,241.19,304a36.37,36.37,0,0,1-9.36,6.45,27,27,0,0,1-2.89,1.13l-.77.24A.88.88,0,0,1,227.91,311.88Z" style="fill:#263238"></path><path d="M262.34,291.91c.43,0,10.38-.68,10.38-.68s-4.11,7.26-8.39,10h-8.71Z" style="fill:#fafafa"></path><path d="M226.17,333.87a3.23,3.23,0,0,1,.56-.43l1.68-1.16c1.45-1,3.54-2.5,6.05-4.43,5-3.83,11.66-9.55,18.78-16.09,3.56-3.27,7-6.35,9.94-9.31a77.76,77.76,0,0,0,7.33-8.32,45.19,45.19,0,0,0,4-6.3c.44-.77.71-1.4.92-1.82a3.54,3.54,0,0,1,.35-.63,4.2,4.2,0,0,1-.25.67c-.18.43-.43,1.08-.84,1.87a41.32,41.32,0,0,1-3.89,6.43,73.35,73.35,0,0,1-7.29,8.44c-2.95,3-6.37,6.09-9.93,9.35-7.12,6.54-13.79,12.24-18.9,16-2.55,1.89-4.68,3.33-6.16,4.3-.75.48-1.34.83-1.74,1.08A3.12,3.12,0,0,1,226.17,333.87Z" style="fill:#263238"></path><path d="M198.13,445s0-.09.12-.24.25-.39.41-.66c.37-.57.93-1.41,1.68-2.47,1.5-2.1,3.82-5.06,6.88-8.54,6.16-6.91,14.79-16.34,24.29-26.78L256,379.62l7.45-8,2-2.17.54-.55.2-.18s-.05.08-.16.21l-.5.59-2,2.24-7.33,8.15L231.9,406.63l-24.4,26.68c-3.09,3.44-5.45,6.35-7,8.41-.77,1-1.36,1.85-1.75,2.41l-.45.63A1.82,1.82,0,0,1,198.13,445Z" style="fill:#263238"></path><path d="M284.84,211c.86,1.29,20.18,3.44,24.91,8.16s52,40.8,52,40.8L328.06,305.3l-21.74-4.79Z" style="fill:#10B981"></path><polygon points="356.02 255.56 318.25 303.14 328.06 305.3 361.71 259.91 356.02 255.56" style="opacity:0.4"></polygon><path d="M295.13,258.2a10.89,10.89,0,0,1-.39-1.58c-.11-.51-.24-1.14-.33-1.88s-.24-1.58-.29-2.52-.15-2-.15-3.07,0-2.28.09-3.52a48.78,48.78,0,0,1,1.25-8A48.06,48.06,0,0,1,298,230c.53-1.12,1-2.2,1.57-3.16s1.06-1.85,1.57-2.64,1-1.47,1.44-2.08a18.48,18.48,0,0,1,1.17-1.51,9.35,9.35,0,0,1,1.09-1.21,9.89,9.89,0,0,1-.93,1.33c-.31.42-.69.93-1.09,1.56s-.91,1.3-1.37,2.11-1,1.67-1.5,2.65-1,2-1.51,3.14a52,52,0,0,0-2.58,7.57,52.59,52.59,0,0,0-1.27,7.89c-.07,1.23-.16,2.4-.13,3.49s0,2.11.08,3,.14,1.77.21,2.51.16,1.37.24,1.88A8.69,8.69,0,0,1,295.13,258.2Z" style="fill:#263238"></path><path d="M310.25,295.48a97.7,97.7,0,0,1-4.17-9.23,99.1,99.1,0,0,1-3.7-9.42,99.65,99.65,0,0,1,4.18,9.22A95.69,95.69,0,0,1,310.25,295.48Z" style="fill:#263238"></path><path d="M161.7,262.54c-.08,0-.89-1.45-2.42-3.7a53.14,53.14,0,0,0-6.82-8.13,54.13,54.13,0,0,0-8.32-6.57c-2.3-1.46-3.81-2.22-3.77-2.3a5,5,0,0,1,1.1.45,32.25,32.25,0,0,1,2.86,1.54,46.19,46.19,0,0,1,8.5,6.51,46.89,46.89,0,0,1,6.76,8.3c.73,1.16,1.28,2.12,1.62,2.81A4.87,4.87,0,0,1,161.7,262.54Z" style="fill:#263238"></path><polygon points="103.93 310.97 106.26 305.3 170.16 322.7 167.63 329.81 103.93 310.97" style="opacity:0.4"></polygon><path d="M274.52,288.56h24.33v10l-31.13-.2S272.53,292.57,274.52,288.56Z" style="fill:#fafafa"></path><g style="opacity:0.2"><path d="M187.74,216.2c.88,7.8,1.84,15.85,5.7,22.69s11.41,12.23,19.18,11.08c5.18-.77,9.57-4.23,13.1-8.11s6.49-8.27,10.34-11.82a45.6,45.6,0,0,0,7.76,6.67,15.21,15.21,0,0,0,9.73,2.57c3.39-.41,5.26-1.76,6.33-5-3.62,1.12-5.61.95-9.22.26a25.21,25.21,0,0,1-10.91-5c-2.12-1.67-2.89-4.18-5.58-4-2.49.14-4.44,2.11-6.08,4a70,70,0,0,1-8.68,8.36c-3,2.37-5.9,4-9.72,3.89-6.29-.14-11.44-5.08-14.91-10.33a51.78,51.78,0,0,1-7-15.81"></path></g><path d="M261.38,206.47a2.59,2.59,0,0,1,.11.56c0,.37.12.91.19,1.61.15,1.4.3,3.43.36,6a85.05,85.05,0,0,1-1.87,19.57l0,.16,0,.16-.15,0a21.18,21.18,0,0,1-10.77-.29,25.2,25.2,0,0,1-8-3.74,20.6,20.6,0,0,1-4.37-4,14,14,0,0,1-.94-1.3,3,3,0,0,1-.29-.49,25.56,25.56,0,0,0,5.8,5.52,25.85,25.85,0,0,0,7.9,3.58,21.14,21.14,0,0,0,10.52.25l-.19.19,0-.16a91.28,91.28,0,0,0,2-19.46c0-2.51-.11-4.54-.19-5.95,0-.65-.07-1.18-.1-1.61A2.08,2.08,0,0,1,261.38,206.47Z" style="fill:#263238"></path><path d="M231,226.2a2.54,2.54,0,0,1-.32.6,16.43,16.43,0,0,1-1.1,1.6,43.07,43.07,0,0,1-4.92,5.19c-1.11,1-2.36,2.11-3.71,3.25-.68.57-1.36,1.17-2.12,1.77a19.72,19.72,0,0,1-2.47,1.59,15.19,15.19,0,0,1-6,1.83,11.35,11.35,0,0,1-6.6-1.46,20.92,20.92,0,0,1-5.17-4.35,51.15,51.15,0,0,1-3.9-4.92,50.42,50.42,0,0,1-5.09-9.31,47.91,47.91,0,0,1-2.24-6.78c-.21-.82-.34-1.46-.42-1.9a3.4,3.4,0,0,1-.1-.67,2.94,2.94,0,0,1,.2.65c.12.43.28,1.06.51,1.87a56.71,56.71,0,0,0,2.39,6.69,51.79,51.79,0,0,0,5.15,9.17,50.54,50.54,0,0,0,3.88,4.85,20.54,20.54,0,0,0,5,4.25,10.92,10.92,0,0,0,6.31,1.4,15.06,15.06,0,0,0,5.84-1.74,18.58,18.58,0,0,0,2.43-1.54c.73-.56,1.43-1.17,2.11-1.73,1.36-1.13,2.62-2.19,3.74-3.19a48,48,0,0,0,5-5c.53-.64.92-1.17,1.18-1.53A4.18,4.18,0,0,1,231,226.2Z" style="fill:#263238"></path><path d="M209.46,341.1l7.71-11.24s5.3-18.42,4.58-21-3.06-12.18-2.51-12.3,6.32-2.26,9.45,5.44c1.95,4.8,2.59,11.12,2.8,15.2a3.49,3.49,0,0,0,4.19,3.26c5.33-1.1,14.2-2.77,16.31-2.26,3.06.73,5.8,4.63,6.06,5.94s-1.84,4.26-1.84,4.26,2.6,1.33,3.4,3.34c.11.27.2.54.28.8a4.84,4.84,0,0,1-1.07,4.68l-.82.9s3.25.89,3.65,2.75a11.11,11.11,0,0,1-.11,4.09l-3.05,3.15a5.15,5.15,0,0,1,1.58,3c.16,1.72-4.41,6-4.41,6l-19.61,7-7.78,2Z" style="fill:#b78876"></path><path d="M256.27,328.42a69.54,69.54,0,0,1-6.8,1.47,67.57,67.57,0,0,1-6.82,1.3,8.5,8.5,0,0,1,1.93-.67c1.21-.34,2.9-.76,4.79-1.14s3.6-.66,4.86-.82A7.65,7.65,0,0,1,256.27,328.42Z" style="fill:#aa6550"></path><path d="M258.06,338.12a28.71,28.71,0,0,1-5.19,1.85,29,29,0,0,1-5.34,1.36,28.71,28.71,0,0,1,5.19-1.85A29,29,0,0,1,258.06,338.12Z" style="fill:#aa6550"></path><path d="M259.23,347.69a35.93,35.93,0,0,1-5.51,2.69A36.1,36.1,0,0,1,248,352.6a35.93,35.93,0,0,1,5.51-2.69A36.1,36.1,0,0,1,259.23,347.69Z" style="fill:#aa6550"></path><path d="M164.28,410.56l72.12-48.38-18.2-33-65.82,33.85,7.47-35.56-44.67-13.22L104,375.15h0c-1.72,27.08,20,48.94,46.18,41.83h0A47.7,47.7,0,0,0,164.28,410.56Z" style="fill:#b78876"></path><path d="M142.85,382.17a3.05,3.05,0,0,1-.25-.91,16.72,16.72,0,0,1-.25-2.55,18,18,0,0,1,1.86-8.21,17.82,17.82,0,0,1,5.45-6.42,14.7,14.7,0,0,1,2.18-1.34,3.17,3.17,0,0,1,.88-.35c0,.09-1.17.66-2.84,2a18.63,18.63,0,0,0-7.16,14.35C142.67,380.84,143,382.16,142.85,382.17Z" style="fill:#aa6550"></path><path d="M328.06,305.3c.45-.62,51.36,30.4,51.36,30.4l16.32,74.35,23.49,8.62s7.33-82.74,1.75-95.62-62.15-59.22-62.15-59.22Z" style="fill:#b78876"></path><path d="M390.54,330a13.43,13.43,0,0,1-4.41,4.16,13.61,13.61,0,0,1-5.62,2.3,56.85,56.85,0,0,0,5.34-2.74A53.47,53.47,0,0,0,390.54,330Z" style="fill:#aa6550"></path><polygon points="266.83 305.46 270.82 376.82 352.18 371.32 349.72 318.2 337.87 302.25 266.83 305.46" style="fill:#263238"></polygon><path d="M248.34,378.41c.24,1.37,7.15,66,7.15,66L376.58,436l20.49-2.75-9.45-60.18-14.47-3.47Z" style="fill:#10B981"></path><path d="M373.15,369.59l-124.81,8.82c.24,1.37,7.15,66,7.15,66l126.07-8.77Z" style="opacity:0.4"></path><polygon points="339.98 372.14 270.82 376.82 266.83 305.46 337.87 302.25 339.98 372.14" style="fill:#455a64"></polygon><polygon points="292.62 304.3 294.08 326.29 297.78 324.17 299.83 326.29 302.38 324.17 306.32 326.29 306.32 303.68 292.62 304.3" style="fill:#263238"></polygon><polygon points="321.53 373.64 316.8 320.08 363.03 332.82 367.49 369.79 321.53 373.64" style="fill:#10B981"></polygon><path d="M363,332.83a2.13,2.13,0,0,1-.29.38l-.89,1.05-3.4,3.88-11.81,13.25-.18.2-.19-.19L340,344.8l-16.47-17.4-4.95-5.32-1.33-1.46a2.84,2.84,0,0,1-.43-.54,4,4,0,0,1,.51.46l1.4,1.4,5.06,5.2,16.58,17.3,6.28,6.61h-.37l12-13.13,3.51-3.78.95-1A2,2,0,0,1,363,332.83Z" style="fill:#263238"></path><path d="M337.11,342.75c.13.07-3.17,6.39-7.36,14.12s-7.69,13.94-7.82,13.87,3.17-6.39,7.36-14.12S337,342.68,337.11,342.75Z" style="fill:#263238"></path><path d="M366.41,369.79c-.12.07-3.32-5.05-7.15-11.43s-6.84-11.63-6.71-11.71,3.32,5.05,7.15,11.44S366.54,369.72,366.41,369.79Z" style="fill:#263238"></path><polygon points="346.36 371.55 343.34 337.44 372.78 345.56 375.62 369.1 346.36 371.55" style="fill:#10B981"></polygon><polygon points="346.36 371.55 343.34 337.44 372.78 345.56 375.62 369.1 346.36 371.55" style="fill:#fff;opacity:0.4"></polygon><path d="M372.78,345.56a5.66,5.66,0,0,1-.73.93c-.55.65-1.27,1.48-2.14,2.49l-7.5,8.46-.18.21-.19-.2-4-4.2c-4.11-4.31-7.81-8.24-10.47-11.1l-3.12-3.41a9.79,9.79,0,0,1-1.1-1.3,10.42,10.42,0,0,1,1.24,1.16l3.25,3.29c2.73,2.8,6.47,6.69,10.58,11l4,4.21H362l7.63-8.34,2.26-2.39A6.36,6.36,0,0,1,372.78,345.56Z" style="fill:#263238"></path><path d="M356.28,351.88c.12.07-1.94,4.11-4.61,9a97,97,0,0,1-5.06,8.79,96.75,96.75,0,0,1,4.6-9A95.54,95.54,0,0,1,356.28,351.88Z" style="fill:#263238"></path><path d="M374.94,369.1a71.32,71.32,0,0,1-4.64-7.23,68.16,68.16,0,0,1-4.19-7.51,147,147,0,0,1,8.83,14.74Z" style="fill:#263238"></path><polygon points="365.12 344.12 365.12 346.86 369.42 347.36 369.65 345.27 365.12 344.12" style="fill:#fff"></polygon><path d="M349.94,330.21v4l8.12,1.34.45-3.06Z" style="fill:#fff"></path><polygon points="318.25 393.58 317.85 373.64 301.68 374.73 303.41 394.99 318.25 393.58" style="fill:#10B981"></polygon><rect x="344.88" y="405.32" width="27.27" height="24.12" transform="translate(-37.79 35.7) rotate(-5.42)" style="fill:#fafafa"></rect><path d="M373.22,428.1a3.57,3.57,0,0,1-.07-.46c0-.33-.09-.76-.15-1.3-.12-1.16-.3-2.81-.52-4.88-.43-4.22-1-10.18-1.76-17.35l.24.2-27.13,2.61c-.06.06.44-.53.23-.28h0v.18l0,.21,0,.4.08.82.15,1.62c.11,1.07.21,2.13.31,3.19.19,2.11.39,4.17.58,6.19.37,4,.73,7.85,1.05,11.38l-.25-.2,19.59-1.74,5.56-.47,1.49-.11a3.45,3.45,0,0,1,.53,0,2.9,2.9,0,0,1-.47.07l-1.44.17-5.5.58-19.71,2-.23,0,0-.23c-.35-3.54-.72-7.36-1.11-11.38q-.28-3-.59-6.19c-.1-1.06-.2-2.12-.3-3.2-.05-.53-.1-1.07-.16-1.61l-.07-.82,0-.4,0-.21v-.18h0c-.21.25.28-.35.24-.29l27.14-2.53.22,0,0,.22c.64,7.23,1.17,13.25,1.55,17.51.17,2.05.3,3.68.4,4.84,0,.53.07.95.09,1.27A2.55,2.55,0,0,1,373.22,428.1Z" style="fill:#263238"></path><path d="M368.82,409.84c0,.15-4.73.76-10.6,1.38a106.2,106.2,0,0,1-10.65.86c0-.14,4.73-.76,10.6-1.38S368.81,409.7,368.82,409.84Z" style="fill:#263238"></path><path d="M368.66,413.92a15.06,15.06,0,0,1-2.91.73c-1.82.36-4.35.78-7.16,1.11s-5.38.51-7.23.57a16.76,16.76,0,0,1-3,0,18.4,18.4,0,0,1,3-.34c1.84-.17,4.38-.4,7.18-.73s5.33-.69,7.16-1A20,20,0,0,1,368.66,413.92Z" style="fill:#263238"></path><path d="M369.81,422.84a15.62,15.62,0,0,1-2.92.73c-1.82.36-4.35.78-7.16,1.11s-5.37.51-7.23.57a15.53,15.53,0,0,1-3,0,18.36,18.36,0,0,1,3-.34c1.84-.16,4.39-.4,7.19-.73s5.33-.69,7.16-1A19.85,19.85,0,0,1,369.81,422.84Z" style="fill:#263238"></path><path d="M368.44,418.27a92.8,92.8,0,0,1-9.89,1.68,95.5,95.5,0,0,1-10,1.16,99.3,99.3,0,0,1,9.89-1.68A98.87,98.87,0,0,1,368.44,418.27Z" style="fill:#263238"></path><path d="M392.41,455.46s22.35-14.79,24.07-22.35,2.75-14.44,2.75-14.44l-23.88-9.89,2.37,8.6s-8.56,5.09-9.44,11.26c-.58,4.11-11.65,11.15-11.65,11.15h0A9.13,9.13,0,0,0,369,436.5l-9.3.66,6.29,14.17Z" style="fill:#b78876"></path><path d="M401.14,435.19a3.56,3.56,0,0,1-1.05.43c-.7.23-1.74.46-3,.86a12.16,12.16,0,0,0-3.88,2.26,19.45,19.45,0,0,1-4.78,3,16.22,16.22,0,0,1-10.14.85,5.45,5.45,0,0,1-1.69-.63,1.24,1.24,0,0,1-.62-1.24.92.92,0,0,1,.5-.72c.2-.07.31,0,.31,0s-.11,0-.26.11a.85.85,0,0,0-.35.66,1,1,0,0,0,.58,1,5.62,5.62,0,0,0,1.62.51,16.64,16.64,0,0,0,9.85-1,19.51,19.51,0,0,0,4.68-2.94,12.09,12.09,0,0,1,4.06-2.22c1.28-.36,2.32-.53,3-.71A7.51,7.51,0,0,1,401.14,435.19Z" style="fill:#aa6550"></path><path d="M385.66,446.66c0,.08-1.15-.58-3.05-1.37a27.82,27.82,0,0,0-7.75-1.93c-.78-.08-1.55-.1-2.29-.12h-.14l-.08-.12a24,24,0,0,0-4.15-4.9c-1.21-1.09-2-1.65-2-1.71s.24.08.62.32a18.33,18.33,0,0,1,1.56,1.13,20.91,20.91,0,0,1,4.37,4.89l-.21-.12c.76,0,1.54,0,2.34.12a24.53,24.53,0,0,1,7.85,2.11,19.36,19.36,0,0,1,2.17,1.16A3,3,0,0,1,385.66,446.66Z" style="fill:#aa6550"></path><path d="M391.7,442.6c0,.14-1.51.71-3.27,1.71s-3.05,2.05-3.15,1.93a10.88,10.88,0,0,1,6.42-3.64Z" style="fill:#aa6550"></path><path d="M403.81,416c0,.16-1.56,0-3.34.45s-3,1.37-3.14,1.24a6.53,6.53,0,0,1,6.48-1.69Z" style="fill:#aa6550"></path></g></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-neutral-darkest mb-2">2. Complete the Exchange</h3>
+                        <p class="text-neutral">Seller delivers the item or service as agreed.</p>
+                    </div>
+                    <div class="text-center p-4 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg rounded-lg" data-aos="fade-up" data-aos-delay="300">
+                        <div class="bg-primary-light w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><g id="freepik--piggy-bank--inject-9"><g id="freepik--piggy-bank--inject-9"><g id="freepik--piggu-bank--inject-9"><path d="M348.76,150.38c17.06-2.7,25.81-11,31.6-21.25,4.23-7.49,5.83-20.51,3.92-30.11a53.49,53.49,0,0,0-5.55-15.38c3-7.82,1.1-16.57-2.73-24.07C371.11,50,361.81,42.9,350.57,44.39c-1.82.24-.49,2,1,2.66,12.89,5.85,16.85,15.62,18,25.45a29.1,29.1,0,0,0-2.81-2c-9.2-5.86-24.13-7.3-34.22-3.15s-11.72,14.12-4.74,22.08c9.42,10.75,27,13.63,39.4,6.9a40,40,0,0,1,1.66,14c-.55,8.91-5.21,16.85-13.83,22.07-2.92,1.77-9.52,3.24-12.93,3-5.88-.48-7.93-.78-13.16-3-2.41-1-4.81.87-5.6,3.16C318.63,149.28,339.58,151.84,348.76,150.38Zm13.58-64.1c-5,2.64-12.28,4-17.55,1.92-3.4-1.31-6-2.63-7.74-4.91-3-4,1.26-5.94,6-5.91C350.8,77.42,357.64,80.15,362.34,86.28Z" style="fill:#10B981"></path><path d="M378.73,83.64a52.36,52.36,0,0,1,4.65,11.61c-4.74,6.22-11.68,8.26-14.6,8.87a40.33,40.33,0,0,0-1.54-7.83C374.66,92,376.66,88.18,378.73,83.64Z" style="opacity:0.2"></path><path d="M362.34,86.28a22.87,22.87,0,0,0-1.87-2.15,20.29,20.29,0,0,0,5.61-4.75c3.31-3.93,3.53-6.88,3.53-6.88C369.89,77.31,366.62,83.92,362.34,86.28Z" style="opacity:0.2"></path><path d="M217.67,358.79c0-.1,0-.2,0-.29l-.05-.31h0c-1-6.8,3-13.83,12-19.14,16.3-9.65,42.91-9.94,59.42-.64,9.08,5.11,13.21,12,12.38,18.88h0l0,.31c0,.09,17.42-2.45,17.42-2.45l-4,4.27a77.57,77.57,0,0,0-19.93,41.34l-2.21,14.77v0l0,.15h0c-.7,4.16-3.78,8.23-9.26,11.48-12.69,7.5-33.38,7.73-46.22.49-5.55-3.12-8.72-7.12-9.51-11.27h0l0-.11s0-.07,0-.11Z" style="fill:#10B981"></path><path d="M217.67,358.79c0-.1,0-.2,0-.29l-.05-.31h0c-1-6.8,3-13.83,12-19.14,16.3-9.65,42.91-9.94,59.42-.64,9.08,5.11,13.21,12,12.38,18.88h0l0,.31c0,.09,17.42-2.45,17.42-2.45l-4,4.27a77.57,77.57,0,0,0-19.93,41.34l-2.21,14.77v0l0,.15h0c-.7,4.16-3.78,8.23-9.26,11.48-12.69,7.5-33.38,7.73-46.22.49-5.55-3.12-8.72-7.12-9.51-11.27h0l0-.11s0-.07,0-.11Z" style="fill:#fff;opacity:0.1"></path><path d="M305,307.1c0-.1,0-.2-.05-.29l-.06-.31h0c-1-6.8,3.12-13.63,12-19.14,6.26-3.9,39-4.25,58-4.46,11.26-.12,17.44-1.32,16.61,5.5h0l0,.31c0,.09,12.36-15.55,12.36-15.55h0A213.34,213.34,0,0,0,384.35,335L380,363.84v0l0,.15h0c-.71,4.16-3.79,8.23-9.27,11.48-12.68,7.5-33.37,7.73-46.22.49-5.54-3.12-8.71-7.12-9.51-11.27h0l0-.11s0-.07,0-.11Z" style="fill:#10B981"></path><path d="M207.56,326.06c0-.1,0-.19,0-.29l.05-.31h0c.83-6.82-3.41-13.56-12.37-18.88-6.34-3.76-39.09-3.4-58-3.2-11.26.12-17.46-.95-16.49,5.86h0l0,.31c0,.09,0,.18,0,.27l13,74.59v0l0,.15h0c.8,4.15,4,8.15,9.51,11.27,12.84,7.23,33.54,7,46.22-.5,5.48-3.24,8.56-7.31,9.27-11.47h0l0-.12s0-.07,0-.1Z" style="fill:#10B981"></path><path d="M207.56,326.06c0-.1,0-.19,0-.29l.05-.31h0c.83-6.82-3.41-13.56-12.37-18.88-6.34-3.76-39.09-3.4-58-3.2-11.26.12-17.46-.95-16.49,5.86h0l0,.31c0,.09,0,.18,0,.27l13,74.59v0l0,.15h0c.8,4.15,4,8.15,9.51,11.27,12.84,7.23,33.54,7,46.22-.5,5.48-3.24,8.56-7.31,9.27-11.47h0l0-.12s0-.07,0-.1Z" style="fill:#10B981"></path><path d="M209.64,111.22c18.53-8.26,43.8-11.68,65.47-11.92A133.93,133.93,0,0,1,410.48,231.77c.53,49.21-25.19,95.37-61.55,123.38-17.49,13.47-43.18,27.35-59.2,33.86-27.31,11.08-44.52,12.27-69.25,12.54A133.92,133.92,0,0,1,85.12,269.08c-.37-33.95,12.23-64.15,32.36-88.32,8.33-10,21.62-25.34,32.14-33.11C170.14,132.51,189.06,120.4,209.64,111.22Z" style="fill:#10B981"></path><path d="M209.64,111.22c18.53-8.26,43.8-11.68,65.47-11.92A133.93,133.93,0,0,1,410.48,231.77c.53,49.21-25.19,95.37-61.55,123.38-17.49,13.47-43.18,27.35-59.2,33.86-27.31,11.08-44.52,12.27-69.25,12.54A133.92,133.92,0,0,1,85.12,269.08c-.37-33.95,12.23-64.15,32.36-88.32,8.33-10,21.62-25.34,32.14-33.11C170.14,132.51,189.06,120.4,209.64,111.22Z" style="fill:#fff;opacity:0.30000000000000004"></path><circle cx="221.1" cy="321.64" r="24.47" style="fill:#10B981;opacity:0.5"></circle><path d="M102.21,260.31a24.47,24.47,0,0,0-13.77-22,130.67,130.67,0,0,0-3.32,30.78A133.9,133.9,0,0,0,86,283.33,24.48,24.48,0,0,0,102.21,260.31Z" style="fill:#10B981;opacity:0.5"></path><path d="M328.79,328.18C380,285.83,410.06,193,368.08,135.45a133.57,133.57,0,0,1,42.4,96.32c.53,49.21-25.19,95.37-61.55,123.38-17.49,13.47-43.18,27.35-59.2,33.86-27.31,11.08-44.52,12.27-69.25,12.54a133.58,133.58,0,0,1-99.3-42.49c-.43-.47-.86-.93-1.28-1.4C195.63,410.93,277.55,370.52,328.79,328.18Z" style="fill:#10B981;opacity:0.30000000000000004"></path><path d="M187.37,159.55l-20.55,12.17c-20.74-5.75-45.43-1.85-60.95,25,0,0-6.07-62.47,1.72-79.84,0,0,4.26-2.51,6-3.54,2.6-1.56,6.82-2.06,11.87-1.24C151,116.3,174.28,137.27,187.37,159.55Z" style="fill:#10B981"></path><path d="M166.82,171.72c-26.85-6.59-47.17,2-60.95,25,0,0-24.46-89.62,13.81-81.22C145.6,121.2,166.82,171.72,166.82,171.72Z" style="fill:#10B981"></path><path d="M166.82,171.72c-26.85-6.59-47.17,2-60.95,25,0,0-24.46-89.62,13.81-81.22C145.6,121.2,166.82,171.72,166.82,171.72Z" style="fill:#fff;opacity:0.2"></path><path d="M128,163.18c24.79-9.4,38.87,8.54,38.87,8.54-26.85-6.59-47.17,2-60.95,25C105.87,196.73,103.16,172.58,128,163.18Z" style="fill:#10B981;opacity:0.5"></path><path d="M208.44,195.15c22.88,20.37,43.51,46.31,58.84,85.33L287,268.91c7.35-7.61,26-71.9-11.54-95.38C250.36,157.85,208.44,195.15,208.44,195.15Z" style="fill:#10B981"></path><path d="M208.44,195.15c27,23.76,46.08,52.56,58.84,85.33,0,0,40.82-72.45,3-103.91C248.19,158.2,208.44,195.15,208.44,195.15Z" style="fill:#10B981"></path><path d="M208.44,195.15c27,23.76,46.08,52.56,58.84,85.33,0,0,40.82-72.45,3-103.91C248.19,158.2,208.44,195.15,208.44,195.15Z" style="fill:#fff;opacity:0.2"></path><path d="M208.44,195.15s22.76-.25,42.67,26.4c18.61,24.93,16.17,58.93,16.17,58.93C254.52,247.71,235.48,218.91,208.44,195.15Z" style="fill:#10B981;opacity:0.5"></path><path d="M110,263.49c8-4.7,19.33-4,32,3.11,24.43,13.75,44.45,46.27,44.74,72.65.13,12.59-4.26,21.49-11.54,25.87-3.51,2.11-17.27,10.27-20.82,12.33-8,4.62-19.28,3.92-31.89-3.18C98.06,360.52,78,328,77.74,301.62,77.61,289,82,280.14,89.26,275.76,92.78,273.64,106.49,265.55,110,263.49Z" style="fill:#10B981"></path><path d="M89.26,275.76c3.52-2.12,17.23-10.21,20.72-12.27,8-4.7,19.33-4,32,3.11,10.18,5.73,19.59,14.73,27.13,25.18L89,339.19C82.12,327,77.87,313.65,77.74,301.62,77.61,289,82,280.14,89.26,275.76Z" style="fill:#fff;opacity:0.2"></path><path d="M182,315.63l-76.74,45.2A103.48,103.48,0,0,1,89,339.19l80.11-47.41A101.6,101.6,0,0,1,182,315.63Z" style="fill:#fff;opacity:0.1"></path><path d="M121.44,278.76c-24.42-13.75-44-3.52-43.7,22.86s20.32,58.9,44.74,72.65,44,3.51,43.7-22.86S145.87,292.51,121.44,278.76Z" style="fill:#10B981"></path><path d="M121.44,278.76c-24.42-13.75-44-3.52-43.7,22.86s20.32,58.9,44.74,72.65,44,3.51,43.7-22.86S145.87,292.51,121.44,278.76Z" style="fill:#10B981"></path><path d="M121.44,278.76c-24.42-13.75-44-3.52-43.7,22.86s20.32,58.9,44.74,72.65,44,3.51,43.7-22.86S145.87,292.51,121.44,278.76Z" style="fill:#fff;opacity:0.30000000000000004"></path><path d="M137.73,352.5h0c3,1.68,5.36-.16,5.32-4.11l-.22-20.12c0-3.95-2.49-8.51-5.47-10.19h0c-3-1.67-5.36.17-5.32,4.11l.22,20.13C132.3,346.26,134.75,350.82,137.73,352.5Z" style="fill:#10B981"></path><path d="M142.83,328.27l.22,20.12a7.42,7.42,0,0,1-.33,2.34,5,5,0,0,1-1.18-.49c-3-1.68-5.43-6.23-5.47-10.18l-.22-20.12a7.42,7.42,0,0,1,.33-2.34,5.43,5.43,0,0,1,1.18.48C140.34,319.76,142.79,324.32,142.83,328.27Z" style="fill:#10B981"></path><path d="M142.83,328.27l.22,20.12a7.42,7.42,0,0,1-.33,2.34,5,5,0,0,1-1.18-.49c-3-1.68-5.43-6.23-5.47-10.18l-.22-20.12a7.42,7.42,0,0,1,.33-2.34,5.43,5.43,0,0,1,1.18.48C140.34,319.76,142.79,324.32,142.83,328.27Z" style="opacity:0.15"></path><path d="M106.56,334.94h0c3,1.68,5.36-.16,5.32-4.11l-.22-20.12c0-3.95-2.49-8.5-5.47-10.18h0c-3-1.68-5.36.16-5.31,4.11l.21,20.12C101.14,328.71,103.59,333.27,106.56,334.94Z" style="fill:#10B981"></path><path d="M111.66,310.71l.22,20.12a7.14,7.14,0,0,1-.33,2.34,5.17,5.17,0,0,1-1.17-.48c-3-1.68-5.43-6.24-5.47-10.19l-.22-20.12A7.18,7.18,0,0,1,105,300a4.79,4.79,0,0,1,1.17.49C109.17,302.21,111.62,306.76,111.66,310.71Z" style="fill:#10B981"></path><path d="M111.66,310.71l.22,20.12a7.14,7.14,0,0,1-.33,2.34,5.17,5.17,0,0,1-1.17-.48c-3-1.68-5.43-6.24-5.47-10.19l-.22-20.12A7.18,7.18,0,0,1,105,300a4.79,4.79,0,0,1,1.17.49C109.17,302.21,111.62,306.76,111.66,310.71Z" style="opacity:0.15"></path><path d="M157.56,370.42c10.94-15.4,3.45-47.34-9.08-66.61,10.61,14.65,17.53,32.17,17.7,47.6.28,26.37-19.28,36.61-43.7,22.86a83.42,83.42,0,0,1-22-18.66C116,373.77,145.88,386.87,157.56,370.42Z" style="fill:#fff;opacity:0.30000000000000004"></path><path d="M187.9,270.08c-1.47,5.52,4.47,1.19,10,2.65s8.53,8.18,10,2.66a10.34,10.34,0,1,0-20-5.31Z" style="fill:#263238"></path><path d="M113,232c-3.34,4.63,3.75,2.71,8.38,6.06s5,10.68,8.39,6A10.34,10.34,0,0,0,113,232Z" style="fill:#263238"></path><polygon points="223.15 162.04 269.38 134.67 258.98 128.81 212.74 156.18 223.15 162.04" style="fill:#10B981"></polygon><polygon points="223.15 162.04 269.38 134.67 258.98 128.81 212.74 156.18 223.15 162.04" style="opacity:0.2"></polygon><polygon points="258.98 128.81 259.04 134.78 217.95 159.11 212.74 156.18 258.98 128.81" style="fill:#10B981"></polygon><polygon points="258.98 128.81 259.04 134.78 264.25 137.72 269.38 134.67 258.98 128.81" style="opacity:0.2"></polygon></g><g id="freepik--Cash--inject-9"><polygon points="261.45 58.91 260.57 94 220.26 93.56 219.01 81.79 261.45 58.91" style="fill:#455a64"></polygon><path d="M220.26,93.56,219,81.79s23.3-.42,39-16.9c9.22-9.71-1.06-12.36-16.64-8.22s-45.17,17.19-43.68,27.1C199.34,95,220.26,93.56,220.26,93.56Z" style="fill:#37474f"></path><path d="M223.15,162l-5.56-3.13L197.65,83.77c.56,3.5,12,7.92,23.71,7.45C253.53,89.94,274.82,61,274.82,61L267,136.06Z" style="fill:#455a64"></path><path d="M209.29,127.64c9.31,3,19.4.64,27.93,8.42a18.16,18.16,0,0,1,6.09,14.05L223.15,162l-5.56-3.13Z" style="fill:#37474f"></path><path d="M220.23,100.57c-2.37.11-12,.57-19.51-5.26l.83,3.16c8.18,5,16.24,4.24,18.76,4.12,18.85-.75,34.11-9.88,44.09-18l-5.9,56.56,2.16-1.28,6.27-60.08L265,81.42C255.35,89.73,239.75,99.8,220.23,100.57Z" style="fill:#e0e0e0"></path><path d="M197.65,83.77a4,4,0,0,0,1.65,2.15,14.63,14.63,0,0,0,2.37,1.43,30.8,30.8,0,0,0,5.2,1.9,47.58,47.58,0,0,0,10.93,1.63A58.6,58.6,0,0,0,239.43,87,77.08,77.08,0,0,0,258.7,76.24a91.88,91.88,0,0,0,8.49-7.14A87.1,87.1,0,0,0,274.82,61,83.3,83.3,0,0,1,259.2,76.89a73.94,73.94,0,0,1-19.43,11,56.57,56.57,0,0,1-22,3.64,45.3,45.3,0,0,1-11-1.91,30.18,30.18,0,0,1-5.18-2.09A13.93,13.93,0,0,1,199.22,86,4.11,4.11,0,0,1,197.65,83.77Z" style="fill:#263238"></path><path d="M252.18,102.61a4,4,0,0,1,1.74-.15,2.62,2.62,0,0,1,1.23.54,2.42,2.42,0,0,1,.71,1,3.23,3.23,0,0,1,.24,1.22,1,1,0,0,1-.18.6,1.07,1.07,0,0,1-.41.41l-1.45.74a.65.65,0,0,1-.52.1.81.81,0,0,1-.3-.31,1.41,1.41,0,0,0-.88-.69,2.91,2.91,0,0,0-1.85.47,6,6,0,0,0-1,.67,5.51,5.51,0,0,0-.87.87,4.37,4.37,0,0,0-.61,1,2.93,2.93,0,0,0-.25,1,1.36,1.36,0,0,0,.18.89.87.87,0,0,0,.7.29,5.08,5.08,0,0,0,1.28-.14l1.9-.43a8.17,8.17,0,0,1,2.06-.26,2.38,2.38,0,0,1,1.35.41,1.85,1.85,0,0,1,.71,1.11,6,6,0,0,1,.14,1.84,7.58,7.58,0,0,1-.41,2.11,9.5,9.5,0,0,1-1,2.1,11.86,11.86,0,0,1-1.5,1.94,12.11,12.11,0,0,1-2,1.66l-.09,1.82a1.4,1.4,0,0,1-.19.6,1,1,0,0,1-.41.41l-1.67.86a.33.33,0,0,1-.39,0,.51.51,0,0,1-.14-.43l.1-1.82a5.22,5.22,0,0,1-1.72.26,2.88,2.88,0,0,1-1.38-.35,2.32,2.32,0,0,1-.9-1,3.56,3.56,0,0,1-.32-1.66,1,1,0,0,1,.18-.6,1.14,1.14,0,0,1,.41-.41l1.45-.74a.69.69,0,0,1,.53-.11.52.52,0,0,1,.29.32,2.61,2.61,0,0,0,.32.52.94.94,0,0,0,.52.33,2.08,2.08,0,0,0,.86,0,4.91,4.91,0,0,0,1.31-.5,9.38,9.38,0,0,0,1.2-.73,6.64,6.64,0,0,0,1-.92,5.63,5.63,0,0,0,.74-1.06,2.84,2.84,0,0,0,.32-1.17,1,1,0,0,0-.24-.82,1.17,1.17,0,0,0-.85-.19,8.83,8.83,0,0,0-1.43.23c-.57.14-1.24.28-2,.42A7.37,7.37,0,0,1,247,115a2,2,0,0,1-1.22-.43,2.07,2.07,0,0,1-.68-1.13,6.3,6.3,0,0,1-.14-1.95,7.65,7.65,0,0,1,.4-2.09,11.33,11.33,0,0,1,.94-2,10.73,10.73,0,0,1,1.38-1.85,11.34,11.34,0,0,1,1.71-1.54l.09-1.83a1.28,1.28,0,0,1,.19-.59,1,1,0,0,1,.41-.42l1.67-.85a.33.33,0,0,1,.39,0,.5.5,0,0,1,.14.42Z" style="fill:#e0e0e0"></path></g><path d="M184.54,78.31a1.79,1.79,0,0,1-2.25,1.18l-16.61-5.15a1.8,1.8,0,0,1,1.07-3.44l16.6,5.16A1.8,1.8,0,0,1,184.54,78.31Z" style="fill:#e0e0e0"></path><path d="M181.67,96.87A1.78,1.78,0,0,1,180.26,98l-17.2,2.57a1.8,1.8,0,0,1-.53-3.56l17.2-2.56a1.8,1.8,0,0,1,1.94,2.43Z" style="fill:#e0e0e0"></path><path d="M207.09,53.26a1.8,1.8,0,0,1-3.47.19l-5.43-16.52a1.8,1.8,0,0,1,3.42-1.12L207,52.33A1.74,1.74,0,0,1,207.09,53.26Z" style="fill:#e0e0e0"></path><path d="M193.67,62a1.79,1.79,0,0,1-2.95,1l-13-11.56a1.8,1.8,0,0,1,2.39-2.69l13,11.56A1.78,1.78,0,0,1,193.67,62Z" style="fill:#e0e0e0"></path></g></g></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-neutral-darkest mb-2">3. Release the Funds</h3>
+                        <p class="text-neutral">Once the buyer confirms, SecureSwap releases payment to the seller.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 overflow-hidden">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-neutral-darkest mb-4" data-aos="fade-up">Who is SecureSwap For?</h2>
+                <p class="text-lg text-neutral mb-12 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">Anyone involved in a Peer-to-Peer transaction anywhere in India who wants security and peace of mind.</p>
+                <img src="images/target-users-main.svg" alt="Diverse P2P Transactions" class="mx-auto mb-12 max-w-lg" data-aos="zoom-in" data-aos-delay="200" onerror="this.onerror=null; this.src='https://placehold.co/600x300/E0E7FF/4338CA?text=All+P2P+Users';">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="300"><span class="text-3xl">🛒</span><p class="mt-2 font-medium text-neutral-dark">Physical Goods</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="350"><span class="text-3xl">💻</span><p class="mt-2 font-medium text-neutral-dark">Digital Vouchers</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="400"><span class="text-3xl">🎟️</span><p class="mt-2 font-medium text-neutral-dark">Event Tickets</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="450"><span class="text-3xl">🎁</span><p class="mt-2 font-medium text-neutral-dark">Gift Cards</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="500"><span class="text-3xl">🎮</span><p class="mt-2 font-medium text-neutral-dark">In-Game Items</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="550"><span class="text-3xl">👟</span><p class="mt-2 font-medium text-neutral-dark">Sneaker Reselling</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="600"><span class="text-3xl">📦</span><p class="mt-2 font-medium text-neutral-dark">General Resellers</p></div>
+                    <div class="text-center p-4 bg-white rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md" data-aos="fade-up" data-aos-delay="650"><span class="text-3xl">👩‍💻</span><p class="mt-2 font-medium text-neutral-dark">Freelancers</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="why-us" class="bg-primary-dark text-white py-16 md:py-24 overflow-hidden">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-12" data-aos="fade-up">Trust & Safety First</h2>
+                <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+                    <div class="text-center" data-aos="fade-up" data-aos-delay="100"> <div class="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition duration-300 transform hover:scale-110"> <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> </div> <h3 class="text-xl font-semibold mb-2">Funds Held in Escrow</h3> <p class="opacity-80">Money is only released when the deal is complete and both parties are satisfied.</p> </div>
+                    <div class="text-center" data-aos="fade-up" data-aos-delay="200"> <div class="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition duration-300 transform hover:scale-110"> <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> </div> <h3 class="text-xl font-semibold mb-2">Verified Parties</h3> <p class="opacity-80">Reduce fraud with verified accounts, adding an extra layer of security.</p> </div>
+                    <div class="text-center" data-aos="fade-up" data-aos-delay="300"> <div class="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition duration-300 transform hover:scale-110"> <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5h-4m4 0l-2-2m0 2l2-2"></path></svg> </div> <h3 class="text-xl font-semibold mb-2">Instant Refunds Guarantee</h3> <p class="opacity-80">If something goes wrong, benefit from our 100% money-back guarantee.</p> </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white py-16 md:py-24 overflow-hidden">
+             <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-neutral-darkest mb-12" data-aos="fade-up">Trusted by Users</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-neutral-light p-6 rounded-lg shadow-sm text-left transition duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" data-aos="fade-up" data-aos-delay="100"> <p class="text-neutral mb-4">"Finally sold my collectible safely! SecureSwap made the process smooth..."</p> <p class="font-semibold text-neutral-dark">- Aditya P.</p> </div>
+                    <div class="bg-neutral-light p-6 rounded-lg shadow-sm text-left transition duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" data-aos="fade-up" data-aos-delay="200"> <p class="text-neutral mb-4">"Was hesitant buying tickets online... SecureSwap's escrow gave me confidence."</p> <p class="font-semibold text-neutral-dark">- Priya S.</p> </div>
+                    <div class="bg-neutral-light p-6 rounded-lg shadow-sm text-left transition duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" data-aos="fade-up" data-aos-delay="300"> <p class="text-neutral mb-4">"As a freelancer... SecureSwap ensures I get paid once the work is approved."</p> <p class="font-semibold text-neutral-dark">- Soham B.</p> </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="py-16 md:py-24 overflow-hidden">
+            <div class="container mx-auto px-6 max-w-4xl">
+                <h2 class="text-3xl md:text-4xl font-bold text-neutral-darkest mb-12 text-center" data-aos="fade-up">Frequently Asked Questions</h2>
+                <div class="space-y-6">
+                    <details class="group bg-white p-6 rounded-lg shadow-sm transition duration-300 ease-in-out hover:shadow-md" data-aos="fade-up" data-aos-delay="100">
+                        <summary class="flex justify-between items-center cursor-pointer font-semibold text-neutral-darkest list-none"> How does SecureSwap protect me?
+                            <svg class="w-5 h-5 text-neutral transform group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <p class="text-neutral mt-4 pt-4 border-t border-neutral-light">SecureSwap acts as a neutral third party. We hold the buyer's payment securely in escrow and only release it to the seller once the buyer confirms they have received the item or service as agreed. This protects buyers from not receiving what they paid for, and sellers from chargebacks or non-payment after delivery.</p>
+                    </details>
+                    <details class="group bg-white p-6 rounded-lg shadow-sm transition duration-300 ease-in-out hover:shadow-md" data-aos="fade-up" data-aos-delay="150">
+                        <summary class="flex justify-between items-center cursor-pointer font-semibold text-neutral-darkest list-none">
+                            What fees does SecureSwap charge?
+                            <svg class="w-5 h-5 text-neutral transform group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <p class="text-neutral mt-4 pt-4 border-t border-neutral-light">We charge a small service fee per transaction to cover operational costs and payment processing. The exact fee structure will be clearly displayed when you create or accept a deal. (Note: Fee details TBD).</p>
+                    </details>
+                    <details class="group bg-white p-6 rounded-lg shadow-sm transition duration-300 ease-in-out hover:shadow-md" data-aos="fade-up" data-aos-delay="200">
+                        <summary class="flex justify-between items-center cursor-pointer font-semibold text-neutral-darkest list-none">
+                            What types of transactions can I use SecureSwap for?
+                             <svg class="w-5 h-5 text-neutral transform group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <p class="text-neutral mt-4 pt-4 border-t border-neutral-light">SecureSwap is designed for a wide range of P2P transactions, including physical goods, digital items, services, tickets, vouchers, and more. As long as both parties agree to the terms, you can use SecureSwap.</p>
+                    </details>
+                     <details class="group bg-white p-6 rounded-lg shadow-sm transition duration-300 ease-in-out hover:shadow-md" data-aos="fade-up" data-aos-delay="250">
+                        <summary class="flex justify-between items-center cursor-pointer font-semibold text-neutral-darkest list-none">
+                            What happens if there's a dispute?
+                            <svg class="w-5 h-5 text-neutral transform group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <p class="text-neutral mt-4 pt-4 border-t border-neutral-light">While our goal is to prevent disputes, if one arises, both parties can communicate through the platform. SecureSwap provides a basic dispute resolution process where we may review evidence provided by both sides to help reach a fair outcome according to our terms of service. (Note: MVP dispute resolution might be limited).</p>
+                    </details>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <footer class="bg-neutral-darkest text-neutral-light">
-         <div class="container mx-auto px-4 sm:px-6 py-8 text-center text-neutral text-sm"> &copy; <span id="current-year"></span> SecureSwap Admin Panel. </div>
+    <footer class="bg-neutral-darkest text-neutral-light mt-16">
+         <div class="container mx-auto px-6 py-12"> <div class="grid grid-cols-1 md:grid-cols-4 gap-8"> <div> <h3 class="text-xl font-bold text-white mb-4">SecureSwap</h3> <p class="text-neutral-light mb-4">Making the internet a trustworthy marketplace, one secure transaction at a time.</p> </div> <div> <h4 class="text-lg font-semibold text-white mb-4">Quick Links</h4> <ul class="space-y-2"> <li><a href="#process" class="text-neutral-light hover:text-white">How it Works</a></li> <li><a href="signup.html" class="text-neutral-light hover:text-white">Create Deal</a></li> <li><a href="login.html" class="text-neutral-light hover:text-white">Login</a></li> <li><a href="#faq" class="text-neutral-light hover:text-white">FAQ</a></li> </ul> </div> <div> <h4 class="text-lg font-semibold text-white mb-4">Legal</h4> <ul class="space-y-2"> <li><a href="privacy.html" class="text-neutral-light hover:text-white">Privacy Policy</a></li> <li><a href="terms.html" class="text-neutral-light hover:text-white">Terms of Service</a></li> <li><a href="refund.html" class="text-neutral-light hover:text-white">Cancellation & Refund</a></li> </ul> </div> <div> <h4 class="text-lg font-semibold text-white mb-4">Contact Us</h4> <ul class="space-y-2"> <li><a href="contact.html" class="text-neutral-light hover:text-white">Contact Form</a></li> <li><span class="text-neutral-light">support@secureswap.in</span></li> </ul> </div> </div> <div class="mt-8 pt-8 border-t border-neutral-dark text-center text-neutral"> &copy; <span id="current-year"></span> SecureSwap. All rights reserved. Built with ❤️ in India.</div> </div>
     </footer>
 
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script type="module">
         // Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, query, orderBy, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Added Timestamp, getDoc
-        import { firebaseConfig } from './js/firebase-config.js'; // Needs YOUR config
-
-        // --- !!! IMPORTANT: SET YOUR ADMIN UID HERE !!! ---
-        const ADMIN_UID = "8YHjoA6aS2VUPCPn717Sv0edCLH2"; // Replace with the actual UID of your admin user
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig } from './js/firebase-config.js'; // Ensure this path is correct and file has config
 
         // Initialize Firebase
         let app, auth, db, currentUser = null;
@@ -98,164 +229,128 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-            console.log("Firebase Initialized for Admin Users Page");
-        } catch (error) { console.error("Firebase initialization failed:", error); setPageStatus('unauthorized', "Error loading application services."); }
+            console.log("Firebase Initialized for Landing Page Header");
+        } catch (error) { console.error("Firebase initialization failed:", error); }
 
         // --- DOM Elements ---
-        let userEmailSpan, logoutButton, loginLink, adminContent, errorMessageDiv,
-            loadingUsersMsg, usersTable, usersTableBody, actionMessageDiv;
+        let authLinks, userInfoHeader, userNameHeader, logoutButtonHeader,
+            mobileAuthLinks, mobileUserInfo, mobileUserName, mobileLogoutButton,
+            menuButton, mobileMenu,
+            createDealLink; // Added createDealLink
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Assign elements
-            userEmailSpan = document.getElementById('user-email');
-            logoutButton = document.getElementById('logout-button');
-            loginLink = document.getElementById('login-link');
-            adminContent = document.getElementById('admin-content');
-            errorMessageDiv = document.getElementById('error-message');
-            loadingUsersMsg = document.getElementById('loading-users');
-            usersTable = document.getElementById('users-table');
-            usersTableBody = document.getElementById('users-table-body');
-            actionMessageDiv = document.getElementById('action-message');
-
-            const currentYearElement = document.getElementById('current-year');
-            if(currentYearElement) currentYearElement.textContent = new Date().getFullYear();
-
-            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
-        });
-
-        // --- Helper: Set Page Status & Message ---
-        function setPageStatus(status, message = '') {
-            requestAnimationFrame(() => { // Ensure DOM updates
-                document.body.dataset.status = status;
-                if (errorMessageDiv && message && status === 'unauthorized') { errorMessageDiv.textContent = message; }
-                if (errorMessageDiv) { errorMessageDiv.style.display = (status === 'unauthorized' || status === 'error') ? 'block' : 'none'; }
-                const contentEl = document.getElementById('admin-content');
-                if (contentEl) { contentEl.style.display = (status === 'loaded') ? 'block' : 'none'; }
-            });
-        }
-
-        // --- Helper: Show Action Message ---
-        function showActionMessage(message, isError = false) {
-             if (actionMessageDiv) {
-                actionMessageDiv.textContent = message;
-                actionMessageDiv.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
-                actionMessageDiv.classList.add(isError ? 'bg-red-50' : 'bg-green-50', isError ? 'text-red-700' : 'text-green-700');
-                setTimeout(() => { actionMessageDiv.classList.add('hidden') }, 3000);
-            }
-        }
-
-        // --- Auth State Listener ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = { uid: user.uid, email: user.email };
-                if(userEmailSpan) { userEmailSpan.textContent = currentUser.email; userEmailSpan.classList.remove('hidden'); }
-                if(logoutButton) logoutButton.classList.remove('hidden');
-                if(loginLink) loginLink.classList.add('hidden');
-
-                if (currentUser.uid === ADMIN_UID) {
-                    console.log("Admin user authorized.");
-                    setPageStatus('loaded');
-                    // Fetch users only after DOM is ready
-                    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', fetchAndDisplayUsers); }
-                    else { fetchAndDisplayUsers(); }
-                } else { setPageStatus('unauthorized', "Access Denied."); }
-            } else {
-                currentUser = null;
-                if(userEmailSpan) userEmailSpan.classList.add('hidden');
-                if(logoutButton) logoutButton.classList.add('hidden');
-                if(loginLink) loginLink.classList.remove('hidden');
-                setPageStatus('unauthorized', "Please log in as an admin.");
-            }
-        });
-
-        // --- Fetch and Display Users ---
-        async function fetchAndDisplayUsers() {
-            if (!db || !usersTableBody || !loadingUsersMsg || !usersTable) { console.error("Admin Users Page elements not ready."); return; }
-            console.log("Fetching users...");
-            loadingUsersMsg.style.display = 'block'; usersTable.classList.add('hidden'); usersTableBody.innerHTML = '';
-
+        // --- Helper Function to Fetch User Name ---
+        async function fetchUserName(uid) {
+            if (!db) { console.error("Firestore not initialized for fetchUserName"); return null; }
             try {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) { loadingUsersMsg.textContent = "No users found."; }
-                else { loadingUsersMsg.style.display = 'none'; usersTable.classList.remove('hidden'); }
-
-                querySnapshot.forEach((docSnap) => {
-                    const user = docSnap.data(); const userId = docSnap.id;
-                    const row = usersTableBody.insertRow();
-
-                    row.insertCell().textContent = user.name || 'N/A';
-                    row.insertCell().textContent = user.email || 'N/A';
-                    // KYC Cell
-                    const kycCell = row.insertCell(); const kycStatus = user.kycDetails?.status || 'missing'; const kycValue = user.kycDetails?.panNumber || 'N/A'; const idCardUrl = user.kycDetails?.idCardUrl; const kycDisplay = kycStatus !== 'missing' ? `(${kycValue})` : ''; const idLinkHtml = idCardUrl ? `<a href="${idCardUrl}" target="_blank" rel="noopener noreferrer" class="view-id-link">(View ID)</a>` : '(No ID)'; kycCell.innerHTML = `<span class="status-${kycStatus}">${kycStatus}</span> ${kycDisplay} ${idLinkHtml}`;
-                     // Bank Cell
-                    const bankCell = row.insertCell(); const bankStatus = user.bankDetails?.status || 'missing'; const bankValue = user.bankDetails?.accountNumber ? `${user.bankDetails.accountNumber} / ${user.bankDetails.ifsc || 'N/A'}` : 'N/A'; const bankDisplay = bankStatus !== 'missing' ? `(${bankValue})` : ''; bankCell.innerHTML = `<span class="status-${bankStatus}">${bankStatus}</span> ${bankDisplay}`;
-                    // Actions Cell
-                    const actionsCell = row.insertCell(); actionsCell.id = `actions-${userId}`; renderActionButtons(actionsCell, userId, kycStatus, bankStatus);
-                });
-
-            } catch (error) { console.error("Error fetching users: ", error); loadingUsersMsg.textContent = "Error loading users."; showActionMessage("Failed to load user data.", true); }
+                const userDocRef = doc(db, "users", uid);
+                const userDocSnap = await getDoc(userDocRef);
+                return userDocSnap.exists() ? (userDocSnap.data().name || null) : null;
+            } catch (error) { console.error("Error fetching user name:", error); return null; }
         }
 
-        // --- Render Action Buttons ---
-        function renderActionButtons(cell, userId, kycStatus, bankStatus) {
-             cell.innerHTML = ''; // Clear existing buttons
-             if (kycStatus === 'pending') { cell.appendChild(createButton('Approve KYC', 'approve', () => handleVerification(userId, 'kycDetails', 'verified'))); cell.appendChild(createButton('Reject KYC', 'reject', () => handleVerification(userId, 'kycDetails', 'rejected'))); }
-             if (bankStatus === 'pending') { cell.appendChild(createButton('Approve Bank', 'approve', () => handleVerification(userId, 'bankDetails', 'verified'))); cell.appendChild(createButton('Reject Bank', 'reject', () => handleVerification(userId, 'bankDetails', 'rejected'))); }
-             // Add Reset buttons maybe?
-             if (kycStatus === 'verified' || kycStatus === 'rejected') { cell.appendChild(createButton('Reset KYC', 'reset', () => handleVerification(userId, 'kycDetails', 'pending'), true)); } // Example reset button
-             if (bankStatus === 'verified' || bankStatus === 'rejected') { cell.appendChild(createButton('Reset Bank', 'reset', () => handleVerification(userId, 'bankDetails', 'pending'), true)); } // Example reset button
+        // --- Helper Function for Logout ---
+        async function handleLogout() {
+            console.log("Logout clicked"); if (!auth) { console.error("Auth not initialized for logout"); return; }
+            try { await signOut(auth); console.log("Sign out successful"); }
+            catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); }
         }
 
-        // --- Helper to create styled buttons ---
-        function createButton(text, type, onClickHandler, isReset = false) {
-             const button = document.createElement('button');
-             button.textContent = text;
-             // Basic styling, adjust as needed
-             let typeClass = 'bg-gray-200 text-gray-700 border-gray-300 hover:bg-gray-300'; // Default/Reset style
-             if (type === 'approve') typeClass = 'btn-approve';
-             if (type === 'reject') typeClass = 'btn-reject';
-             button.className = `action-btn ${typeClass}`;
-             button.onclick = onClickHandler;
-             return button;
-        }
+         // --- Assign elements and run listeners ---
+         document.addEventListener('DOMContentLoaded', () => {
+             console.log("Index Page DOM Loaded");
+             // Assign Header Elements
+             authLinks = document.getElementById('auth-links');
+             userInfoHeader = document.getElementById('user-info-header');
+             userNameHeader = document.getElementById('user-name-header');
+             logoutButtonHeader = document.getElementById('logout-button-header');
+             // Assign Mobile Menu Elements
+             menuButton = document.getElementById('mobile-menu-button');
+             mobileMenu = document.getElementById('mobile-menu');
+             mobileAuthLinks = document.getElementById('mobile-auth-links');
+             mobileUserInfo = document.getElementById('mobile-user-info');
+             mobileUserName = document.getElementById('mobile-user-name');
+             mobileLogoutButton = document.getElementById('mobile-logout-button');
+             // Assign Create Deal Link Element
+             createDealLink = document.getElementById('create-deal-link');
 
-        // --- Handle Verification Update ---
-        // Make globally accessible if needed, otherwise keep as is
-        async function handleVerification(userId, detailType, newStatus) {
-            if (!db || !currentUser || currentUser.uid !== ADMIN_UID) { showActionMessage("Unauthorized action.", true); return; }
-            console.log(`Attempting to set ${detailType} status to ${newStatus} for user ${userId}`);
-            showActionMessage("Processing...", false);
-            const actionCell = document.getElementById(`actions-${userId}`); const buttons = actionCell ? actionCell.querySelectorAll('button') : []; buttons.forEach(btn => btn.disabled = true);
-            try {
-                const userDocRef = doc(db, "users", userId); const updateData = {}; updateData[`${detailType}.status`] = newStatus;
-                // Update overall isVerified flag logic
-                let shouldSetOverallVerified = false; let otherDetailStatus = 'missing'; const otherDetailType = detailType === 'kycDetails' ? 'bankDetails' : 'kycDetails';
-                const userDocSnap = await getDoc(userDocRef); // Fetch current data first
-                if (userDocSnap.exists()) { otherDetailStatus = userDocSnap.data()[otherDetailType]?.status ?? 'missing'; }
-                if (newStatus === 'verified' && otherDetailStatus === 'verified') { shouldSetOverallVerified = true; }
-                updateData['isVerified'] = shouldSetOverallVerified; // Set true only if both are verified, otherwise false
-                console.log(`Setting isVerified to ${updateData['isVerified']} for user ${userId}`);
-                // Perform the update
-                await updateDoc(userDocRef, updateData);
-                console.log(`${detailType} status updated successfully for user ${userId}`); showActionMessage(`${detailType.replace('Details','')} status updated to ${newStatus}.`, false);
-                // Refresh the row instantly
-                const updatedDocSnap = await getDoc(userDocRef); // Re-fetch updated data
-                 if (updatedDocSnap.exists() && actionCell && actionCell.parentNode) {
-                     const updatedUser = updatedDocSnap.data(); const kycCell = actionCell.parentNode.cells[2]; const bankCell = actionCell.parentNode.cells[3];
-                     const newKycStatus = updatedUser.kycDetails?.status || 'missing'; const kycValue = updatedUser.kycDetails?.panNumber || 'N/A'; const idCardUrl = updatedUser.kycDetails?.idCardUrl; const kycDisplay = newKycStatus !== 'missing' ? `(${kycValue})` : ''; const idLinkHtml = idCardUrl ? `<a href="${idCardUrl}" target="_blank" rel="noopener noreferrer" class="view-id-link">(View ID)</a>` : '(No ID)'; kycCell.innerHTML = `<span class="status-${newKycStatus}">${newKycStatus}</span> ${kycDisplay} ${idLinkHtml}`;
-                     const newBankStatus = updatedUser.bankDetails?.status || 'missing'; const bankValue = updatedUser.bankDetails?.accountNumber ? `${updatedUser.bankDetails.accountNumber} / ${updatedUser.bankDetails.ifsc || 'N/A'}` : 'N/A'; const bankDisplay = newBankStatus !== 'missing' ? `(${bankValue})` : ''; bankCell.innerHTML = `<span class="status-${newBankStatus}">${newBankStatus}</span> ${bankDisplay}`;
-                     renderActionButtons(actionCell, userId, newKycStatus, newBankStatus); // Re-render buttons
-                 } else { fetchAndDisplayUsers(); } // Fallback
-            } catch (error) { console.error(`Error updating ${detailType} status for user ${userId}:`, error); showActionMessage(`Failed to update ${detailType} status.`, true); buttons.forEach(btn => btn.disabled = false); }
-        }
+             // Mobile Menu Toggle Listener
+             if(menuButton && mobileMenu) { menuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden')); }
+             else { console.warn("Mobile menu elements not found"); }
 
-        // --- Logout Handler ---
-        async function handleLogout() { if (!auth) return; try { await signOut(auth); } catch (error) { console.error("Sign out failed:", error); alert("Failed to sign out."); } }
+             // Set Current Year
+             const currentYearElement = document.getElementById('current-year');
+             if(currentYearElement) { currentYearElement.textContent = new Date().getFullYear(); }
+
+             // Initialize AOS
+             if (typeof AOS !== 'undefined') { AOS.init({ duration: 800, easing: 'ease-in-out', once: true, mirror: false, anchorPlacement: 'top-bottom' }); console.log("AOS Initialized"); }
+             else { console.warn("AOS library not loaded."); }
+
+             // Initial Auth State Check after assigning elements
+             if (auth) { onAuthStateChanged(auth, authStateHandler); }
+             else { authStateHandler(null); } // Show logged-out state if auth failed
+         });
+
+         // --- Auth State Handler (Explicit Display Control) ---
+         const authStateHandler = async (user) => {
+             // Ensure header elements are available
+             if (!authLinks || !userInfoHeader || !userNameHeader || !logoutButtonHeader || !mobileAuthLinks || !mobileUserInfo || !mobileUserName || !mobileLogoutButton || !createDealLink) {
+                  console.warn("Header/Deal Link elements not ready yet in authStateHandler, retrying assignment...");
+                  // Re-assign just in case DOMContentLoaded hasn't fully completed before first auth check
+                  authLinks = document.getElementById('auth-links');
+                  userInfoHeader = document.getElementById('user-info-header');
+                  userNameHeader = document.getElementById('user-name-header');
+                  logoutButtonHeader = document.getElementById('logout-button-header');
+                  mobileAuthLinks = document.getElementById('mobile-auth-links');
+                  mobileUserInfo = document.getElementById('mobile-user-info');
+                  mobileUserName = document.getElementById('mobile-user-name');
+                  mobileLogoutButton = document.getElementById('mobile-logout-button');
+                  createDealLink = document.getElementById('create-deal-link');
+                  // If still missing, log error and exit
+                  if (!authLinks || !userInfoHeader || !userNameHeader || !logoutButtonHeader || !mobileAuthLinks || !mobileUserInfo || !mobileUserName || !mobileLogoutButton || !createDealLink) {
+                       console.error("Header/Deal Link elements critical error! Cannot update UI."); return;
+                  }
+             }
+
+             if (user) { // User is Logged IN
+                 currentUser = { uid: user.uid, email: user.email };
+                 console.log("User logged in, updating header:", user.uid);
+                 const userName = await fetchUserName(user.uid);
+
+                 // Update Desktop Header
+                 userNameHeader.textContent = userName || user.email; // Fallback to email
+                 authLinks.style.display = 'none'; // Explicitly hide
+                 userInfoHeader.style.display = 'flex'; // Explicitly show as flex
+                 logoutButtonHeader.removeEventListener('click', handleLogout); // Prevent duplicate listeners
+                 logoutButtonHeader.addEventListener('click', handleLogout);
+
+                 // Update Mobile Header
+                 mobileUserName.textContent = userName || user.email;
+                 mobileAuthLinks.style.display = 'none'; // Explicitly hide
+                 mobileUserInfo.style.display = 'block'; // Explicitly show
+                 mobileLogoutButton.removeEventListener('click', handleLogout); // Prevent duplicate listeners
+                 mobileLogoutButton.addEventListener('click', handleLogout);
+
+                 // Update Create Deal Link
+                 createDealLink.href = 'create-deal.html';
+                 console.log("User logged in, Create Deal link updated to create-deal.html");
+
+             } else { // User is Logged OUT
+                 currentUser = null;
+                 console.log("User signed out, updating header.");
+                 // Update Desktop Header
+                 authLinks.style.display = 'flex'; // Explicitly show as flex
+                 userInfoHeader.style.display = 'none'; // Explicitly hide
+                 // Update Mobile Header
+                 mobileAuthLinks.style.display = 'block'; // Explicitly show
+                 mobileUserInfo.style.display = 'none'; // Explicitly hide
+
+                 // Update Create Deal Link
+                 createDealLink.href = 'signup.html'; // Point to signup when logged out
+                 console.log("User logged out, Create Deal link updated to signup.html");
+             }
+         };
 
     </script>
-     <script src="js/main.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
