@@ -27,22 +27,35 @@
 </head>
 <body class="bg-neutral-lightest flex flex-col min-h-screen" data-status="loading"> <header class="bg-white shadow-sm sticky top-0 z-50">
          <nav class="container mx-auto px-4 sm:px-6 py- flex justify-between items-center">
-            <div>
-                <a href="/" class="flex items-center">
-                  <!-- logo icon -->
-                  <img
-                    src="images/logo.png"
-                    alt="SecureSwap logo icon"
-                    class="h-16 w-16 mr-auto"
-                  />
-                  <!-- letterform logo -->
-                  <img
-                    src="images/letterform-1.png"
-                    alt="SecureSwap"
-                    class="h-16 w-auto"
-                  />
-                </a>
-              </div>
+            <div class="hidden md:flex items-center space-x-6">
+          <div>
+            <a href="/" class="flex items-center">
+              <img
+                src="images/logo.png"
+                alt="SecureSwap logo icon"
+                class="h-16 w-16 mr-auto"
+              />
+
+              <img
+                src="images/letterform.png"
+                alt="SecureSwap"
+                class="h-16 w-auto"
+              />
+            </a>
+          </div>
+        </div>
+
+        <div class="flex md:hidden items-center">
+          <div>
+            <a href="/" class="flex items-center">
+              <img
+                src="images/logo.png"
+                alt="SecureSwap logo icon"
+                class="h-16 w-16 mr-auto"
+              />
+            </a>
+          </div>
+        </div>
             <div class="flex items-center space-x-3 sm:space-x-4 md:space-x-6">
                  <div id="auth-links" class="hidden md:flex items-center space-x-4 md:space-x-6">
                       <a href="login.html" class="text-sm sm:text-base text-neutral hover:text-primary transition duration-200">Login</a>
