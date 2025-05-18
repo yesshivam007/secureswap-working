@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <title>Create New Deal - SecureSwap</title>
     <link href="css/output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -86,7 +86,7 @@
             <form id="create-deal-form" class="space-y-6">
 
                 <div> <label for="other-party-email" class="block text-sm font-medium text-neutral-dark">Other Party's Email Address</label> <input type="email" id="other-party-email" name="other_party_email" required autocomplete="email" placeholder="Enter the email of the person you're dealing with" class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"> <p class="mt-1 text-xs text-neutral">They will receive an email to review and confirm the deal.</p> </div>
-                <div> <label for="my-role" class="block text-sm font-medium text-neutral-dark">Your Role in this Deal</label> <select id="my-role" name="my_role" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-neutral-light focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"> <option value="" disabled selected>-- Select your role --</option> <option value="buyer">I am the Buyer (Making Payment)</option> <option value="seller">I am the Seller (Receiving Payment)</option> </select> <p class="mt-1 text-xs text-neutral">This determines who pays and who receives funds.</p> </div>
+                <div> <label for="my-role" class="block text-sm font-medium text-neutral-dark">Your Role in this Deal</label> <select id="my-role" name="my_role" style=" background-color: rgba(220, 220, 220, 0.224);" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-neutral-light focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"> <option value="" disabled selected>-- Select your role --</option> <option value="buyer">I am the Buyer (Making Payment)</option> <option value="seller">I am the Seller (Receiving Payment)</option> </select> <p class="mt-1 text-xs text-neutral">This determines who pays and who receives funds.</p> </div>
                  <div> <label for="deal-description" class="block text-sm font-medium text-neutral-dark">Deal Description</label> <textarea id="deal-description" name="deal_description" rows="4" required placeholder="Briefly describe the item or service..." class="mt-1 block w-full px-3 py-2 border border-neutral-light rounded-md shadow-sm placeholder-neutral focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"></textarea> </div>
                  <div>
                     <label for="deal-amount" class="block text-sm font-medium text-neutral-dark">Base Deal Amount (INR)</label>
